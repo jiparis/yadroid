@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">The Game</string>
+    <string name="game_load">Load Game</string>
+    <string name="game_loading">Loading Game ...</string>
+    <string name="game_download">Download Game</string>
+    <string name="game_map">Game Map</string>
+</resources>
