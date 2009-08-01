@@ -21,7 +21,7 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
 
-public abstract class GLTutorialBase extends SurfaceView implements SurfaceHolder.Callback, Runnable {
+public abstract class GLBase extends SurfaceView implements SurfaceHolder.Callback, Runnable {
 	protected EGLContext glContext;
 	protected ViewAnimator animator;
 	protected SurfaceHolder sHolder;
@@ -115,7 +115,7 @@ public abstract class GLTutorialBase extends SurfaceView implements SurfaceHolde
 	 * Constructor
 	 * @param c The View's context.
 	 */
-	public GLTutorialBase(Context c) {
+	public GLBase(Context c) {
 		this(c, -1);
 	}
 
@@ -124,7 +124,7 @@ public abstract class GLTutorialBase extends SurfaceView implements SurfaceHolde
 	 * @param c The View's context
 	 * @param fps The frames per second for the animation.
 	 */
-	public GLTutorialBase(Context c, int fps) {
+	public GLBase(Context c, int fps) {
 		super(c);
 		sHolder = getHolder();
 		sHolder.addCallback(this);

@@ -10,20 +10,13 @@ import android.graphics.BitmapFactory;
 import android.hardware.SensorListener;
 import android.hardware.SensorManager;
 
-public class ShadowsView extends GLTutorialBase {
+public class ShadowsView extends GLBase {
 
 	float[] quad = new float[]{
 			-1.0f,-1.0f, 0.0f,
 			 1.0f,-1.0f, 0.0f,
 			-1.0f, 1.0f, 0.0f,
 			1.0f, 1.0f, 0.0f		
-	};
-	
-	float[] colors = new float[]{
-			1, 0,0,1,
-			0,1,0,1,
-			0,0,1,1,
-			1,1,1,0.5f
 	};
 	
 	float texCoords[] = new float[] {			
@@ -60,6 +53,11 @@ public class ShadowsView extends GLTutorialBase {
 	Bitmap bmp;
 	
 	Context context;
+	
+	float lightAmbient[]= { 0.5f, 0.5f, 0.5f, 1.0f }; 	// Ambient Light Values
+	float lightDiffuse[]= { 1.0f, 1.0f, 1.0f, 1.0f };	// Diffuse Light Values 
+	float lightPosition[]= { 0.0f, 0.0f, 2.0f, 1.0f };	// Light Position 	
+
 	SensorListener sl = new SensorListener(){
 
 		public void onAccuracyChanged(int sensor, int accuracy) {				
@@ -79,13 +77,9 @@ public class ShadowsView extends GLTutorialBase {
 	public ShadowsView(Context c) {
 		super(c, 5);
 		quadBuff = makeFloatBuffer(quad);
-		colBuff = makeFloatBuffer(colors);
 		texBuff = makeFloatBuffer(texCoords);
 		bmp = BitmapFactory.decodeResource(c.getResources(), R.drawable.compass);
-		context = c;
-		
-        SensorManager sm = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
-        sm.registerListener(sl, SensorManager.SENSOR_ORIENTATION, SensorManager.SENSOR_DELAY_GAME);
+		context = c;        
 
 		linea1Buff = makeFloatBuffer(linea1);
 		linea2Buff = makeFloatBuffer(linea2);
@@ -93,12 +87,20 @@ public class ShadowsView extends GLTutorialBase {
 
 		carreteraBuff = makeFloatBuffer(carretera);
 	}
+	
+	protected void registerSensors(){
+		SensorManager sm = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
+        sm.registerListener(sl, SensorManager.SENSOR_ORIENTATION, SensorManager.SENSOR_DELAY_GAME);
+	}
+	
+	protected void unregisterSensors(){
+		SensorManager sm = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
+        sm.unregisterListener(sl);
+	}
 
 	@Override
 	protected void end(GL10 gl) {
-		super.end(gl);
-		SensorManager sm = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
-        sm.unregisterListener(sl);
+		super.end(gl);		
 	}
 
 	@Override
@@ -119,6 +121,14 @@ public class ShadowsView extends GLTutorialBase {
 		
 		// Load textures
 		compassTex = loadTexture(gl, bmp);
+		
+		// lights
+		gl.glEnable(GL10.GL_LIGHTING);
+		gl.glEnable(GL10.GL_LIGHT0);
+
+		gl.glLightfv(GL10.GL_LIGHT0, GL10.GL_AMBIENT, lightAmbient,	0);
+		gl.glLightfv(GL10.GL_LIGHT0, GL10.GL_DIFFUSE, lightDiffuse,	0);
+		gl.glLightfv(GL10.GL_LIGHT0, GL10.GL_POSITION, lightPosition, 0);
 	}
 	
 	@Override
@@ -150,6 +160,7 @@ public class ShadowsView extends GLTutorialBase {
 			gl.glEnableClientState(GL10.GL_TEXTURE_COORD_ARRAY);	
 				
 			// draw!
+			gl.glNormal3f(0,0,1.0f);
 			gl.glDrawArrays(GL10.GL_TRIANGLE_STRIP, 0, 4);		
 		gl.glPopMatrix();
 		
@@ -161,7 +172,7 @@ public class ShadowsView extends GLTutorialBase {
 		
 		// poste
 		gl.glPushMatrix();
-			gl.glColor4f(0, 0, 1, 0.9f);
+			gl.glColor4f(0, 0, 1, 1.0f);
 			gl.glTranslatef(0, 0, 0.5f);
 			gl.glScalef(0.25f, 0.25f, 1.0f);
 			drawPoste(gl);
@@ -207,15 +218,14 @@ public class ShadowsView extends GLTutorialBase {
 		gl.glDisable(GL10.GL_TEXTURE_2D);
 		gl.glVertexPointer(3, GL10.GL_FLOAT, 0, cubeBuff);
 
+		gl.glNormal3f(0,0,1);
 		gl.glDrawArrays(GL10.GL_TRIANGLE_STRIP, 0, 4);
 		gl.glNormal3f(0,0,-1);
 		gl.glDrawArrays(GL10.GL_TRIANGLE_STRIP, 4, 4);
-	
 		gl.glNormal3f(-1,0,0);
 		gl.glDrawArrays(GL10.GL_TRIANGLE_STRIP, 8, 4);
 		gl.glNormal3f(1,0,0);
 		gl.glDrawArrays(GL10.GL_TRIANGLE_STRIP, 12, 4);
-		
 		gl.glNormal3f(0,1,0);
 		gl.glDrawArrays(GL10.GL_TRIANGLE_STRIP, 16, 4);
 		gl.glNormal3f(0,-1,0);
