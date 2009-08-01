@@ -1,11 +1,16 @@
 package org.jiagjl.test;
 
 import org.jiagjl.R;
+import org.jiagjl.ShadowsActivity;
 import org.jiagjl.controls.TimeSeekBar;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 
 public class TestTimeActivity extends Activity {
 
@@ -30,4 +35,24 @@ public class TestTimeActivity extends Activity {
 
 		setContentView(timeSeekBar);
 	}
+
+    /* Creates the menu items */
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.test, menu);
+        return true;
+    }
+
+    /* Handles item selections */
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+        case R.id.menu_slider_test:
+        	startActivity( new Intent( getApplicationContext(), TestTimeActivity.class ) );
+            return true;
+        case R.id.menu_shadow:
+            startActivity( new Intent( getApplicationContext(), ShadowsActivity.class ) );
+            return true;
+        }
+        return false;
+    }    
 }
