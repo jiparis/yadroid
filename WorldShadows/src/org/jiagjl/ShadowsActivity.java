@@ -6,17 +6,18 @@ import org.jiagjl.test.TestTimeActivity;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.ViewGroup.LayoutParams;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 
 public class ShadowsActivity extends Activity {
-    
-	static final private int MENU_NOW_ID = Menu.FIRST;
-    static final private int MENU_GOTO_ID = Menu.FIRST + 1;
-    static final private int MENU_CONFIG_ID = Menu.FIRST + 2;	
 	
     ShadowsView sv;
+    
 	/**
 	 * EVENTS
 	 */
@@ -27,7 +28,39 @@ public class ShadowsActivity extends Activity {
         super.onCreate(savedInstanceState);
         setTitle(R.string.app_name);
         sv = new ShadowsView(this);
-        setContentView(sv);
+        //setContentView(sv);
+        //setContentView(R.layout.main);
+        //sv = (ShadowsView) findViewById(R.id.shadows_view);
+        LinearLayout ll = new LinearLayout(getApplicationContext());
+        ll.setOrientation(LinearLayout.VERTICAL);
+        ll.setLayoutParams(new LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT,
+        												LayoutParams.WRAP_CONTENT));
+        TextView tv = new TextView(getApplicationContext()); 
+        tv.setText("textview!!");
+        tv.setLayoutParams(new LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT,
+				LayoutParams.WRAP_CONTENT));
+        ll.addView(tv);        
+
+        sv.setLayoutParams(new LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT,
+        												LayoutParams.FILL_PARENT, 1));
+        ll.addView(sv);
+        
+        TimeSeekBar timeSeekBar = new TimeSeekBar(getApplicationContext(), 8f,
+				22f, 30, 10.5f, 18f, new TimeSeekBar.ITimeBarCallback() {
+					public void onEndTimeValueChange(int hour, int minute) {
+						Log.i( "SHADOWS", "End: " + hour + ":" + minute  );
+					}
+
+					public void onStartTimeValueChange(int hour, int minute) {
+						Log.i( "SHADOWS", "Start: " + hour + ":" + minute  );
+					}
+				}, false);
+        timeSeekBar.setLayoutParams(new LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT,
+				60, 0));
+        
+        ll.addView(timeSeekBar);
+        
+        setContentView(ll);
     }
     
     // activity stopped and restarted
@@ -86,12 +119,6 @@ public class ShadowsActivity extends Activity {
     /* Handles item selections */
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-        case R.id.menu_slider_test:
-        	startActivity( new Intent( getApplicationContext(), TestTimeActivity.class ) );
-            return true;
-        case R.id.menu_shadow:
-            startActivity( new Intent( getApplicationContext(), ShadowsActivity.class ) );
-            return true;
         case R.id.menu_now:
         case R.id.menu_goto:
         case R.id.menu_config:

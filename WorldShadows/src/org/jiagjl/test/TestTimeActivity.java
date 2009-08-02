@@ -45,14 +45,7 @@ public class TestTimeActivity extends Activity {
 
     /* Handles item selections */
     public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-        case R.id.menu_slider_test:
-        	startActivity( new Intent( getApplicationContext(), TestTimeActivity.class ) );
-            return true;
-        case R.id.menu_shadow:
-            startActivity( new Intent( getApplicationContext(), ShadowsActivity.class ) );
-            return true;
-        }
+
         return false;
     }    
 }

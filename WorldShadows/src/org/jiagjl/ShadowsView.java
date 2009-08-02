@@ -9,6 +9,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.hardware.SensorListener;
 import android.hardware.SensorManager;
+import android.util.AttributeSet;
 
 public class ShadowsView extends GLBase {
 
@@ -86,6 +87,10 @@ public class ShadowsView extends GLBase {
 		linea3Buff = makeFloatBuffer(linea3);
 
 		carreteraBuff = makeFloatBuffer(carretera);
+	}
+	
+	public ShadowsView(Context c, AttributeSet as){
+		this(c);
 	}
 	
 	protected void registerSensors(){
