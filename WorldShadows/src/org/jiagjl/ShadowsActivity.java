@@ -4,12 +4,17 @@ import org.jiagjl.controls.TimeSeekBar;
 import org.jiagjl.test.TestTimeActivity;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -27,7 +32,7 @@ public class ShadowsActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setTitle(R.string.app_name);
-        sv = new ShadowsView(this);
+        
         //setContentView(sv);
         //setContentView(R.layout.main);
         //sv = (ShadowsView) findViewById(R.id.shadows_view);
@@ -37,13 +42,16 @@ public class ShadowsActivity extends Activity {
         												LayoutParams.WRAP_CONTENT));
         TextView tv = new TextView(getApplicationContext()); 
         tv.setText("textview!!");
+//        tv.setLayoutParams(new LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT,
+//				LayoutParams.WRAP_CONTENT));
         tv.setLayoutParams(new LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT,
-				LayoutParams.WRAP_CONTENT));
+				LayoutParams.FILL_PARENT, 1));
         ll.addView(tv);        
 
+        sv = new ShadowsView(this);
         sv.setLayoutParams(new LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT,
         												LayoutParams.FILL_PARENT, 1));
-        ll.addView(sv);
+//        ll.addView(sv);
         
         TimeSeekBar timeSeekBar = new TimeSeekBar(getApplicationContext(), 8f,
 				22f, 30, 10.5f, 18f, new TimeSeekBar.ITimeBarCallback() {
@@ -56,12 +64,16 @@ public class ShadowsActivity extends Activity {
 					}
 				}, false);
         timeSeekBar.setLayoutParams(new LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT,
-				60, 0));
+				80, 0));
         
         ll.addView(timeSeekBar);
         
-        setContentView(ll);
+        setContentView(sv);
+
+        addContentView(ll, new LayoutParams
+        		(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT));
     }
+    
     
     // activity stopped and restarted
     @Override
