@@ -51,7 +51,7 @@ public class ShadowsActivity extends Activity {
         sv = new ShadowsView(this);
         sv.setLayoutParams(new LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT,
         												LayoutParams.FILL_PARENT, 1));
-//        ll.addView(sv);
+        sv.setClickable(true);
         
         TimeSeekBar timeSeekBar = new TimeSeekBar(getApplicationContext(), 8f,
 				22f, 30, 10.5f, 18f, new TimeSeekBar.ITimeBarCallback() {

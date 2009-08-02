@@ -59,18 +59,23 @@ public class ShadowsView extends GLBase {
 	float lightDiffuse[]= { 1.0f, 1.0f, 1.0f, 1.0f };	// Diffuse Light Values 
 	float lightPosition[]= { 0.0f, 0.0f, 2.0f, 1.0f };	// Light Position 	
 
+	boolean paused = false;
+	boolean canPress = false;
+	
 	SensorListener sl = new SensorListener(){
 
 		public void onAccuracyChanged(int sensor, int accuracy) {				
 		}
 
 		public void onSensorChanged(int sensor, float[] values) {
-				//Azimuth - z
+			if (!paused){
+				//Azimuth - z				
 				rquad = values[0];
 				//Pitch - x
 				xrot = values[1];
 				//Roll - y
-				yrot = values[2];			
+				yrot = values[2];	
+			}
 		}
     	
     };
@@ -137,7 +142,13 @@ public class ShadowsView extends GLBase {
 	}
 	
 	@Override
-	protected void drawFrame(GL10 gl) {		
+	protected void drawFrame(GL10 gl) {				
+		if (isPressed() && canPress){			
+			paused = !paused;
+			canPress = false;
+		}		
+		if (!isPressed())
+			canPress = true;
 		
 		gl.glClear(GL10.GL_COLOR_BUFFER_BIT | GL10.GL_DEPTH_BUFFER_BIT);	// Clear The Screen And The Depth Buffer
 		gl.glMatrixMode(GL10.GL_MODELVIEW);		
@@ -146,9 +157,10 @@ public class ShadowsView extends GLBase {
 		
 		gl.glLoadIdentity();					// Reset The View, loading the identity matrix
 		gl.glTranslatef(0,0,-5); // center scene
-		gl.glRotatef(xrot, 1.0f, 0, 0);
-		gl.glRotatef(rquad,0.0f,0.0f,1.0f);	// rotate scene on z axis
-
+		
+		gl.glRotatef(xrot, 1.0f, 0, 0);			
+		gl.glRotatef(rquad,0.0f,0.0f,1.0f);	// rotate scene on z axis			
+				
 		// textured quad
 		gl.glPushMatrix(); 
 			gl.glEnable(GL10.GL_TEXTURE_2D);						// Enable Texture Mapping 
