@@ -165,7 +165,8 @@ public abstract class DoubleSeekBar extends View {
 		endThumb.draw(canvas);
 
 		paint.setShader(null);
-		paint.setColor(_lightBackground ? Color.DKGRAY : Color.WHITE);
+//		paint.setColor(_lightBackground ? Color.DKGRAY : Color.WHITE);
+		paint.setColor(_lightBackground ? Color.DKGRAY : Color.BLACK);
 		// paint.setTextSize(10);
 		// Log.d(Constants.LOG_TAG, "DoubleSeekBar: text size "
 		// + paint.getTextSize());
