@@ -21,6 +21,7 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
 
+
 public abstract class GLBase extends SurfaceView implements SurfaceHolder.Callback, Runnable {
 	protected EGLContext glContext;
 	protected ViewAnimator animator;
@@ -79,23 +80,29 @@ public abstract class GLBase extends SurfaceView implements SurfaceHolder.Callba
 	 * @return The newly created identifier for the texture.
 	 */
 	protected static int loadTexture(GL10 gl, Bitmap bmp, boolean reverseRGB) {
-		ByteBuffer bb = ByteBuffer.allocateDirect(bmp.getHeight()*bmp.getWidth()*4);
+		int w = bmp.getWidth();
+		int h = bmp.getHeight();
+		int[] ia = new int[h*w];
+
+		bmp.getPixels(ia,0,w,0,0,w,h);
+		for (int y=ia.length-1;y>=0;y--) {
+			int pix = ia[y];
+			// Convert ARGB -> RGBA
+			@SuppressWarnings("unused")
+			byte alpha = (byte)((pix >> 24)&0xFF);
+			byte red = (byte)((pix >> 16)&0xFF);
+			byte green = (byte)((pix >> 8)&0xFF);
+			byte blue = (byte)((pix)&0xFF);
+			
+			// It seems like alpha is currently broken in Android...
+			ia[y]= red << 24 | green << 16 | blue << 8 | 0xFF;//255-alpha);
+		}
+
+		ByteBuffer bb = ByteBuffer.allocateDirect(h*w*4);
 		bb.order(ByteOrder.BIG_ENDIAN);
 		IntBuffer ib = bb.asIntBuffer();
+		ib.put(ia);
 
-		for (int y=bmp.getHeight()-1;y>-1;y--)
-			for (int x=0;x<bmp.getWidth();x++) {
-				int pix = bmp.getPixel(x,bmp.getHeight()-y-1);
-				// Convert ARGB -> RGBA
-				@SuppressWarnings("unused")
-				byte alpha = (byte)((pix >> 24)&0xFF);
-				byte red = (byte)((pix >> 16)&0xFF);
-				byte green = (byte)((pix >> 8)&0xFF);
-				byte blue = (byte)((pix)&0xFF);
-				
-				// It seems like alpha is currently broken in Android...
-				ib.put(red << 24 | green << 16 | blue << 8 | 0xFF);//255-alpha);
-			}
 		ib.position(0);
 		bb.position(0);
 
@@ -203,7 +210,7 @@ public abstract class GLBase extends SurfaceView implements SurfaceHolder.Callba
 			
 		GL10 gl = (GL10)context.getGL();
 
-		init(gl);
+		gl = init(gl);
 		
 		int delta = -1;
 		if (fps > 0) {
@@ -282,7 +289,7 @@ public abstract class GLBase extends SurfaceView implements SurfaceHolder.Callba
 		return (float) (i * Math.PI / 180f);
 	}
 	
-	protected void init(GL10 gl) {}
+	protected GL10 init(GL10 gl) {return gl;}
 
 	protected void end(GL10 gl) {}
 	
