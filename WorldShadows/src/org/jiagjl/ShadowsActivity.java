@@ -1,18 +1,26 @@
 package org.jiagjl;
 
+import java.util.Calendar;
+
 import org.jiagjl.controls.TimeSeekBar;
 
 import android.app.Activity;
+import android.app.DatePickerDialog;
+import android.app.Dialog;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.ContextMenu;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
+import android.view.ContextMenu.ContextMenuInfo;
 import android.view.ViewGroup.LayoutParams;
+import android.widget.DatePicker;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-public class ShadowsActivity extends Activity {
+public class ShadowsActivity extends Activity implements DatePickerDialog.OnDateSetListener {
 	
     ShadowsView sv;
     
@@ -46,13 +54,27 @@ public class ShadowsActivity extends Activity {
         												LayoutParams.FILL_PARENT, 1));
         sv.setClickable(true);
         
-        TimeSeekBar timeSeekBar = new TimeSeekBar(getApplicationContext(), 8f,
-				22f, 30, 10.5f, 18f, new TimeSeekBar.ITimeBarCallback() {
+        Calendar c = sv.si.getCalendar();
+        float max_time = 22f;
+        float min_time = 8f;
+        float start_time = c.get(Calendar.HOUR_OF_DAY) + c.get(Calendar.MINUTE) / 60.0f;
+        if ( start_time < min_time )
+        	start_time = min_time;
+        float end_time = start_time + (float)sv.si.getValue(SolarInformation.TIME_WINDOW_VALUE) / 60.0f;
+        if ( end_time > max_time ){
+        	end_time = max_time;
+        	start_time = end_time - 1.0f;
+        }
+        
+        TimeSeekBar timeSeekBar = new TimeSeekBar(getApplicationContext(), min_time,
+        		max_time, 30, start_time, end_time, new TimeSeekBar.ITimeBarCallback() {
 					public void onEndTimeValueChange(int hour, int minute) {
+						sv.si.setEndTime(hour, minute);
 						Log.i( "SHADOWS", "End: " + hour + ":" + minute  );
 					}
 
 					public void onStartTimeValueChange(int hour, int minute) {
+						sv.si.setTime(hour, minute);
 						Log.i( "SHADOWS", "Start: " + hour + ":" + minute  );
 					}
 				}, false);
@@ -60,6 +82,13 @@ public class ShadowsActivity extends Activity {
 				80, 0));
         
         ll.addView(timeSeekBar);
+        
+        sv.setOnCreateContextMenuListener(new View.OnCreateContextMenuListener() {
+			public void onCreateContextMenu(ContextMenu menu, View view,
+                    ContextMenuInfo menuInfo) {
+		        MenuInflater inflater = getMenuInflater();
+		        inflater.inflate(R.menu.test, menu);
+			}});
         
         setContentView(sv);
 
@@ -126,9 +155,68 @@ public class ShadowsActivity extends Activity {
         switch (item.getItemId()) {
         case R.id.menu_now:
         case R.id.menu_goto:
+            showDialog(DIALOG_DATEPICKER);
+        	return true;
         case R.id.menu_config:
         	return true;        
         }
         return false;
     }    
+
+    @Override
+    public boolean onContextItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+        case R.id.menu_now:
+        case R.id.menu_goto:
+            showDialog(DIALOG_DATEPICKER);
+        	return true;
+        case R.id.menu_config:
+        	return true;        
+        }
+        return false;
+    }    
+
+	static final int DIALOG_DATEPICKER = 0;
+    
+    @Override
+    protected Dialog onCreateDialog(int id) {
+        Dialog d;
+
+        switch (id) {
+        case DIALOG_DATEPICKER:
+            d = new DatePickerDialog(
+                    ShadowsActivity.this,
+                    this,
+                    2008,
+                    1,
+                    1);
+            d.setTitle("Seleccione el día");
+            break;
+        default:
+            d = null;
+        }
+
+        return d;
+    }
+
+    @Override
+    protected void onPrepareDialog(int id, Dialog dialog) {
+        super.onPrepareDialog(id, dialog);
+
+        switch (id) {
+        case DIALOG_DATEPICKER:
+            DatePickerDialog datePicker = (DatePickerDialog)dialog;
+            Calendar c = sv.si.getCalendar();
+            datePicker.updateDate(c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.get(Calendar.DAY_OF_MONTH));
+            break;
+        }
+    }
+
+
+	@Override
+	public void onDateSet(DatePicker view, int year, int month, int day) {
+		sv.si.setDate(year, month, day);
+		Log.i( "DatePicker", ""+year+"-"+month+"-"+day );
+	}
+    
 }
