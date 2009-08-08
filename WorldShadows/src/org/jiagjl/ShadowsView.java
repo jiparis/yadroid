@@ -7,6 +7,8 @@ import javax.microedition.khronos.opengles.GL10;
 import org.jiagjl.drawtext.LabelMaker;
 import org.jiagjl.drawtext.matrix.MatrixTrackingGL;
 
+import org.jiagjl.drawtext.NumericSprite;
+
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -17,6 +19,9 @@ import android.util.AttributeSet;
 
 public class ShadowsView extends GLBase {
 
+	SolarInformation si;
+	int time_window = 4*60; //En minutos
+	
 	float[] quad = new float[]{
 			-1.0f,-1.0f, 0.0f,
 			 1.0f,-1.0f, 0.0f,
@@ -65,9 +70,10 @@ public class ShadowsView extends GLBase {
 
 	
 	LabelMaker mLabels;
+	NumericSprite mNumericSprite;
 	Paint mLabelPaint;
-	int mLabelTest;
-	int mLabelNE, mLabelSE, mLabelNW, mLabelSW;
+	int mLabelNA;
+	int mLabelNE, mLabelSE, mLabelNW, mLabelSW, mLabelDot;
 	float[] qm = new float[16];
 	
 	static float DEGREES_MIN = 0.0f;
@@ -137,6 +143,8 @@ public class ShadowsView extends GLBase {
 		linea3Buff = makeFloatBuffer(linea3);
 
 		carreteraBuff = makeFloatBuffer(carretera);
+		
+		si = new SolarInformation();
 	}
 	
 	public ShadowsView(Context c, AttributeSet as){
@@ -207,13 +215,21 @@ public class ShadowsView extends GLBase {
         }
         mLabels.initialize(gl);
         mLabels.beginAdding(gl);
-        mLabelTest = mLabels.add(gl, "Texto OpenGL", mLabelPaint);
+        mLabelNA = mLabels.add(gl, "Fuera de rango", mLabelPaint);
         mLabelSW = mLabels.add(gl, "SW", mLabelPaint);
         mLabelNE = mLabels.add(gl, "NE", mLabelPaint);
         mLabelSE = mLabels.add(gl, "SE", mLabelPaint);
         mLabelNW = mLabels.add(gl, "NW", mLabelPaint);
+        mLabelDot = mLabels.add(gl, ".", mLabelPaint);
         mLabels.endAdding(gl);
         
+        if (mNumericSprite != null) {
+            mNumericSprite.shutdown(gl);
+        } else {
+            mNumericSprite = new NumericSprite();
+        }
+        mNumericSprite.initialize(gl, mLabelPaint);
+
         return mgl;
 	}
 
@@ -237,9 +253,25 @@ public class ShadowsView extends GLBase {
 		//El origen de coordenadas es la esquina inferior izquierda
 		//La Z se utiliza para saber el orden de pintado. Si es >= 0
 		//se pinta sobre la perspectiva que estamos haciendo
-		mLabels.beginDrawing(gl, mWidth, mHeight);
-        mLabels.draw(gl, (mWidth-mLabels.getWidth(mLabelTest))/2, mHeight-mLabels.getHeight(mLabelTest), 0, mLabelTest);
-        mLabels.endDrawing(gl);
+        float shadow = (float)si.getValue(SolarInformation.SHADOW_LENGTH_VALUE);
+
+        if ( shadow > 20.0f ) {
+			mLabels.beginDrawing(gl, mWidth, mHeight);
+	        mLabels.draw(gl, (mWidth-mLabels.getWidth(mLabelNA))/2, mHeight-mLabels.getHeight(mLabelNA), 0, mLabelNA);
+	        mLabels.endDrawing(gl);
+        } else {
+	        float width = mLabels.getWidth(mLabelDot);
+	        
+			int e = (int) Math.floor(shadow);
+			int d = (int) Math.floor((shadow - e) * 1000);
+	        mNumericSprite.setValue(e);
+	        mNumericSprite.draw(gl, (mWidth-width)/2-mNumericSprite.width(), mHeight-mLabels.getHeight(mLabelNA), mWidth, mHeight);
+			mLabels.beginDrawing(gl, mWidth, mHeight);
+	        mLabels.draw(gl, (mWidth-width)/2, mHeight-mLabels.getHeight(mLabelNA), 0, mLabelDot);
+	        mLabels.endDrawing(gl);
+	        mNumericSprite.setValue(d);
+	        mNumericSprite.draw(gl, (mWidth+width)/2, mHeight-mLabels.getHeight(mLabelNA), mWidth, mHeight);
+        }
 
 		// textured quad
 		gl.glPushMatrix(); 
@@ -268,6 +300,10 @@ public class ShadowsView extends GLBase {
 			gl.glNormal3f(0,0,1.0f);
 			gl.glDrawArrays(GL10.GL_TRIANGLE_STRIP, 0, 4);		
 
+			//Pinta etiquetas de dirección en cada uno de los vértices 
+			//de la brújula. Si el objeto gl no es del tipo MatrixTrackingGL,
+			//no será capaz de calcular la proyección de cada vértice,
+			//por lo que pintaría los textos en la coordenada 0,0
 			mLabels.beginDrawing(gl, mWidth, mHeight);
 	        mLabels.draw(gl, quad[0], quad[1], quad[2], mLabelSW, 0);
 	        mLabels.draw(gl, quad[3], quad[4], quad[5], mLabelSE, 0);
@@ -364,4 +400,5 @@ public class ShadowsView extends GLBase {
 		gl.glNormal3f(0,-1,0);
 		gl.glDrawArrays(GL10.GL_TRIANGLE_STRIP, 20, 4);
 	}
+
 }
