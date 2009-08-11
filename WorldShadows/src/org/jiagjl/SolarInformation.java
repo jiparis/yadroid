@@ -2,7 +2,10 @@ package org.jiagjl;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.GregorianCalendar;
+
+
 
 public class SolarInformation {
 
@@ -25,7 +28,7 @@ public class SolarInformation {
 	float time_zone   = calendar.get(Calendar.ZONE_OFFSET) / 3600000.0f; // 1000 * 60 * 60
 	double latitude   = 37.36d;
 	double longitude  = -5.97d;
-	int time_window = 4*60; //En minutos
+	int time_window_minutes = 24*60; //En minutos
 
 	boolean recalculate = true;
 	
@@ -36,13 +39,13 @@ public class SolarInformation {
 	}
 
 	synchronized public void setTimeWindow( int timeWindow ) {
-		time_window = timeWindow;
+		time_window_minutes = timeWindow;
 	}
 	
 	synchronized public void setEndTime( int hour, int minute ) {
-		time_window = (hour*60+minute)-(calendar.get(Calendar.HOUR_OF_DAY)*60+calendar.get(Calendar.MINUTE));;
-		if ( time_window < 0 )
-			time_window = 4*60;
+		time_window_minutes = (hour*60+minute)-(calendar.get(Calendar.HOUR_OF_DAY)*60+calendar.get(Calendar.MINUTE));;
+		if ( time_window_minutes < 0 )
+			time_window_minutes = 4*60;
 	}
 	
 	synchronized public void setPosition( double latitude, double longitude ) {
@@ -112,7 +115,7 @@ public class SolarInformation {
 			res = fShadowLength;
 			break;
 		case TIME_WINDOW_VALUE:
-			res = (float)time_window;
+			res = (float)time_window_minutes;
 			break;
 		default:
 			break;
@@ -120,7 +123,10 @@ public class SolarInformation {
 		return res;
 	}
 
-	synchronized public String getTime(int field) {
+	/*
+	 * agalan: He modificado este método para que en vez de String devuelva un java.util.Date
+	 */
+	synchronized public Date getTime(int field) {
 		if ( recalculate )
 			compute(latitude, longitude, time_zone, calendar );
 		
@@ -144,10 +150,16 @@ public class SolarInformation {
 		String minute, hour;
 		int t = (int) Math.floor(res);
 		int m = (int) Math.floor((res - t) * 60.0);
-		if (m < 10) minute = "0" + m; else minute = ""+m;
-		if (t < 10) hour = "0" + t; else hour = ""+t;
 		
-		return hour + ":" + minute;
+		//if (m < 10) minute = "0" + m; else minute = ""+m;
+		//if (t < 10) hour = "0" + t; else hour = ""+t;
+		//return hour + ":" + minute;
+		
+		Date date = new Date();
+		date.setHours(t);
+		date.setMinutes(m);
+		return date;
+		
 	}
 	
 	synchronized public Calendar getCalendar() {
@@ -173,21 +185,56 @@ public class SolarInformation {
 //	static int[] month_day_convert = new int[] { 0, 31, 59, 90, 120, 151, 181,
 //			212, 243, 273, 304, 334 };
 
-
+	/*
+	 * agalan: modificado este método para que en vez de azimut y longitud de sobra
+	 * devuelva la X y la Y
+	 */
 	synchronized public float[] calculateShadowsRange( float[] shadows, int step ) {
-		int size = (int)Math.round( time_window / step + 0.5);
+		int size = (int)Math.round( time_window_minutes / step + 0.5);
 		if ( shadows == null || (shadows.length / 2) != size )
 			shadows = new float[size*2];
 		calendar.add(Calendar.MINUTE, size*step);
 		for ( int n = size-1; n >= 0; n-- ) {
 			calendar.add( Calendar.MINUTE , -1*step);
 			compute( latitude, longitude, time_zone, calendar );
-			shadows[n*2] = (float)getValue(SolarInformation.AZIMUT_VALUE);
-			shadows[n*2+1] = (float)getValue(SolarInformation.SHADOW_LENGTH_VALUE);
+//			shadows[n*2] = -(float)(Math.sin(azimut*Math.PI/180)*(float)getValue(SolarInformation.AZIMUT_VALUE));
+//			shadows[n*2+1] = -(float)(Math.cos(azimut*Math.PI/180)*(float)getValue(SolarInformation.SHADOW_LENGTH_VALUE));
+			shadows[n*2]= -(float)(Math.sin(getValue(SolarInformation.AZIMUT_VALUE)*Math.PI/180)*getValue(SolarInformation.SHADOW_LENGTH_VALUE));
+			shadows[n*2+1]=-(float)(Math.cos(getValue(SolarInformation.AZIMUT_VALUE)*Math.PI/180)*getValue(SolarInformation.SHADOW_LENGTH_VALUE));
+		}
+		
+		for(int i=0;i<shadows.length;i=i+2){
+			System.out.println(shadows[i]+" , "+shadows[i+1]);
 		}
 		return shadows;
 	}
 
+	private float[] calculateShadowRange(int stepInMinutes) {
+		// TODO Auto-generated method stub
+		
+		int size = ((int)Math.round( time_window_minutes / stepInMinutes + 0.5))*2;
+		float[] puntos = new float[size];
+		boolean isEndShadow=false;
+		int contador=0;
+		while(!isEndShadow){
+			this.compute(37.36d, -5.97d, 2.0f, calendar);
+			Date sunsetDate=getTime(SUNSET_TIME);
+			Date sunriseDate=getTime(SUNRISE_TIME);
+			
+			double shadowLength=getValue(SHADOW_LENGTH_VALUE);
+			double azimut=getValue(AZIMUT_VALUE);
+			puntos[contador]= -(float)(Math.sin(azimut*Math.PI/180)*shadowLength);
+			puntos[contador+1]=-(float)(Math.cos(azimut*Math.PI/180)*shadowLength);
+			calendar.add(Calendar.MINUTE, stepInMinutes);
+			if(contador>=size || sunsetDate.before(calendar.getTime()) || sunriseDate.after(calendar.getTime())){
+				isEndShadow=true;
+			}
+			contador=contador+2;
+		}
+		
+		return puntos;
+	}
+	
 	private void compute(double latitude, double longitude, float timeZone, Calendar instant) {
 		// Location in radians.
 		double fLatitude;

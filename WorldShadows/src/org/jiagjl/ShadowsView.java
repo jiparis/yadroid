@@ -19,7 +19,10 @@ import android.util.AttributeSet;
 
 public class ShadowsView extends GLBase {
 
-	SolarInformation si;
+	/*
+	 * agalan: He cambiado el nombre de la variable de 'si' a 'solarInformation'.
+	 */
+	SolarInformation solarInformation;
 	int time_window = 4*60; //En minutos
 	
 	float[] quad = new float[]{
@@ -39,9 +42,10 @@ public class ShadowsView extends GLBase {
 	FloatBuffer quadBuff;
 	FloatBuffer colBuff;
 	FloatBuffer texBuff;
+	FloatBuffer shadowsBuff;
 
 	
-	float[] linea1 = new float[] { 0.0f, 0.0f, 0.01f, 1.3f, 0.0f, 0.01f, };
+/*	float[] linea1 = new float[] { 0.0f, 0.0f, 0.01f, 1.3f, 0.0f, 0.01f, };
 	float[] linea2 = new float[] { 0.0f, 0.0f, 0.01f, 0.0f, 1.3f, 0.01f, };
 	float[] linea3 = new float[] { 0.0f, 0.0f, 0.01f, 0.0f, 0.0f, 1.3f, };
 	
@@ -53,7 +57,7 @@ public class ShadowsView extends GLBase {
 									   1.4f, -10.0f, -0.0f,  1.4f, 10.0f, 0.0f,};
 
 	FloatBuffer carreteraBuff;
-	
+*/	
 	float rquad;
 	float xrot = 0.0f;
 	float yrot = 0.0f;
@@ -138,13 +142,13 @@ public class ShadowsView extends GLBase {
 		bmp = BitmapFactory.decodeResource(c.getResources(), R.drawable.compass);
 		context = c;        
 
-		linea1Buff = makeFloatBuffer(linea1);
+/*		linea1Buff = makeFloatBuffer(linea1);
 		linea2Buff = makeFloatBuffer(linea2);
 		linea3Buff = makeFloatBuffer(linea3);
-
 		carreteraBuff = makeFloatBuffer(carretera);
-		
-		si = new SolarInformation();
+*/		
+		solarInformation = new SolarInformation();
+		shadowsBuff=makeFloatBuffer(solarInformation.calculateShadowsRange(null, 5));
 	}
 	
 	public ShadowsView(Context c, AttributeSet as){
@@ -247,21 +251,24 @@ public class ShadowsView extends GLBase {
 		gl.glMatrixMode(GL10.GL_MODELVIEW);		
 		gl.glColor4f(1.0f,1.0f,1.0f, 0.0f);				// Set The Color
 		gl.glLoadIdentity();					// Reset The View, loading the identity matrix
-		gl.glTranslatef(0,0,-5); // center scene
+		gl.glTranslatef(0,0,-10); // center scene
 
 		//Pintamos los textos en la x,y de pantalla que queramos
 		//El origen de coordenadas es la esquina inferior izquierda
 		//La Z se utiliza para saber el orden de pintado. Si es >= 0
 		//se pinta sobre la perspectiva que estamos haciendo
-        float shadow = (float)si.getValue(SolarInformation.SHADOW_LENGTH_VALUE);
+        
+		
+		
+		
+		float shadow = (float)solarInformation.getValue(SolarInformation.SHADOW_LENGTH_VALUE);
 
         if ( shadow > 20.0f ) {
 			mLabels.beginDrawing(gl, mWidth, mHeight);
 	        mLabels.draw(gl, (mWidth-mLabels.getWidth(mLabelNA))/2, mHeight-mLabels.getHeight(mLabelNA), 0, mLabelNA);
 	        mLabels.endDrawing(gl);
         } else {
-	        float width = mLabels.getWidth(mLabelDot);
-	        
+	        float width = mLabels.getWidth(mLabelDot);	        
 			int e = (int) Math.floor(shadow);
 			int d = (int) Math.floor((shadow - e) * 1000);
 	        mNumericSprite.setValue(e);
@@ -312,13 +319,9 @@ public class ShadowsView extends GLBase {
 	        mLabels.endDrawing(gl);
 		gl.glPopMatrix();
 		
-		// prueba de circle
-//		gl.glPushMatrix();
-//			gl.glColor4f(0.0f,0.0f,0.0f, 0.0f);				// Set The Color
-//			GLDrawCircle(gl, 10, 0.5f, 0, -2, true);
-//		gl.glPopMatrix();
 		
-		// poste
+		
+		// Dibuja el poste
 		gl.glPushMatrix();
 			gl.glLoadIdentity();					// Reset The View, loading the identity matrix
 			gl.glTranslatef(0,0,-5); // center scene
@@ -329,14 +332,24 @@ public class ShadowsView extends GLBase {
 				Utils.quatToMatrix( qm, 0, Utils.eulerToQuat((float)(-xrot*Math.PI/180.0), (float)(yrot*Math.PI/180.0), 0) );
 				//La aplicamos al modelo multiplicandola con OpenGL
 				gl.glMultMatrixf(qm, 0);
-			}
-			
+			}			
 			gl.glColor4f(0, 0, 1, 1.0f);
 			gl.glTranslatef(0, 0, 0.5f);
 			gl.glScalef(0.25f, 0.25f, 1.0f);
 			drawPoste(gl);
 		gl.glPopMatrix();
+	
+			drawShadow(gl);
+	}
 
+
+
+	private void drawShadow(GL10 gl) {
+		gl.glEnableClientState(GL10.GL_VERTEX_ARRAY);
+		gl.glVertexPointer(2, GL10.GL_FLOAT, 0, shadowsBuff);
+		gl.glColor4f(1f,1f,1f, 0f);				// Set The Color
+		gl.glDrawArrays(GL10.GL_TRIANGLE_FAN, 0, shadowsBuff.capacity()/2);
+		gl.glDisableClientState(GL10.GL_VERTEX_ARRAY);
 	}
 
 	int mWidth;

@@ -54,13 +54,13 @@ public class ShadowsActivity extends Activity implements DatePickerDialog.OnDate
         												LayoutParams.FILL_PARENT, 1));
         sv.setClickable(true);
         
-        Calendar c = sv.si.getCalendar();
+        Calendar c = sv.solarInformation.getCalendar();
         float max_time = 22f;
         float min_time = 8f;
         float start_time = c.get(Calendar.HOUR_OF_DAY) + c.get(Calendar.MINUTE) / 60.0f;
         if ( start_time < min_time )
         	start_time = min_time;
-        float end_time = start_time + (float)sv.si.getValue(SolarInformation.TIME_WINDOW_VALUE) / 60.0f;
+        float end_time = start_time + (float)sv.solarInformation.getValue(SolarInformation.TIME_WINDOW_VALUE) / 60.0f;
         if ( end_time > max_time ){
         	end_time = max_time;
         	start_time = end_time - 1.0f;
@@ -69,12 +69,12 @@ public class ShadowsActivity extends Activity implements DatePickerDialog.OnDate
         TimeSeekBar timeSeekBar = new TimeSeekBar(getApplicationContext(), min_time,
         		max_time, 30, start_time, end_time, new TimeSeekBar.ITimeBarCallback() {
 					public void onEndTimeValueChange(int hour, int minute) {
-						sv.si.setEndTime(hour, minute);
+						sv.solarInformation.setEndTime(hour, minute);
 						Log.i( "SHADOWS", "End: " + hour + ":" + minute  );
 					}
 
 					public void onStartTimeValueChange(int hour, int minute) {
-						sv.si.setTime(hour, minute);
+						sv.solarInformation.setTime(hour, minute);
 						Log.i( "SHADOWS", "Start: " + hour + ":" + minute  );
 					}
 				}, false);
@@ -206,16 +206,15 @@ public class ShadowsActivity extends Activity implements DatePickerDialog.OnDate
         switch (id) {
         case DIALOG_DATEPICKER:
             DatePickerDialog datePicker = (DatePickerDialog)dialog;
-            Calendar c = sv.si.getCalendar();
+            Calendar c = sv.solarInformation.getCalendar();
             datePicker.updateDate(c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.get(Calendar.DAY_OF_MONTH));
             break;
         }
     }
 
 
-	@Override
 	public void onDateSet(DatePicker view, int year, int month, int day) {
-		sv.si.setDate(year, month, day);
+		sv.solarInformation.setDate(year, month, day);
 		Log.i( "DatePicker", ""+year+"-"+month+"-"+day );
 	}
     
