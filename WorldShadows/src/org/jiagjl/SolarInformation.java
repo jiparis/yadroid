@@ -93,9 +93,9 @@ public class SolarInformation {
 	double fShadowLength;
 
 	synchronized public double getValue(int field) {
-		if ( recalculate )
+		/*if ( recalculate )
 			compute(latitude, longitude, time_zone, calendar );
-
+*/
 		double res = 0;
 		switch (field) {
 		case LOCAL_VALUE:
@@ -132,9 +132,9 @@ public class SolarInformation {
 	 * agalan: He modificado este método para que en vez de String devuelva un java.util.Date
 	 */
 	synchronized public Date getTime(int field) {
-		if ( recalculate )
+/*		if ( recalculate )
 			compute(latitude, longitude, time_zone, calendar );
-		
+*/		
 		double res = 0;
 		switch (field) {
 		case LOCAL_TIME:
@@ -194,7 +194,7 @@ public class SolarInformation {
 	 * agalan: modificado este método para que en vez de azimut y longitud de sobra
 	 * devuelva la X y la Y
 	 */
-	synchronized public float[] calculateShadowsRange( float[] shadows, int step ) {
+/*	synchronized public float[] calculateShadowsRange( float[] shadows, int step ) {
 		int size = (int)Math.round( time_window_minutes / step + 0.5);
 		if ( shadows == null || (shadows.length / 2) != size )
 			shadows = new float[size*2];
@@ -212,7 +212,7 @@ public class SolarInformation {
 			System.out.println(shadows[i]+" , "+shadows[i+1]);
 		}
 		return shadows;
-	}
+	}*/
 
 
 	
@@ -483,7 +483,7 @@ public class SolarInformation {
 				/**
 				 * Sitúo la hora actual a la de la Salida del sol para que me muestre todo el día.
 				 */
-				cal.set(Calendar.HOUR, sunriseDate.get(Calendar.HOUR));
+				cal.set(Calendar.HOUR_OF_DAY, sunriseDate.get(Calendar.HOUR_OF_DAY));
 				cal.set(Calendar.MINUTE, sunriseDate.get(Calendar.MINUTE));
 				this.compute(37.36d, -5.97d, 2.0f, cal);
 				
@@ -512,9 +512,6 @@ public class SolarInformation {
 				cal.set(Calendar.MINUTE, sunriseDate.get(Calendar.MINUTE));
 				continue;
 			}*/
-
-			
-			
 			
 			double azimut=getValue(AZIMUT_VALUE);
 			shadowLength=(shadowLength>MAX_SHADOW_LENGT?MAX_SHADOW_LENGT:shadowLength);
@@ -524,8 +521,7 @@ public class SolarInformation {
 			puntos[contador+1]=Y;
 			System.out.println(cal.get(Calendar.HOUR_OF_DAY)+":"+cal.get(Calendar.MINUTE)+" X:"+puntos[contador]+"f, Y:"+puntos[contador+1]+"f,"+": Azimut:"+azimut+" Longitud sombra:"+shadowLength);
 			cal.add(Calendar.MINUTE, stepInMinutes);
-			
-			
+						
 			/* 
 			 * Comprobación de que la hora no sobrepase la de la caída del sol.
 			 * Si es así termina el bucle.

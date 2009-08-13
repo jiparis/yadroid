@@ -1,6 +1,8 @@
 package org.jiagjl;
 
 import java.nio.FloatBuffer;
+import java.util.GregorianCalendar;
+import java.util.TimeZone;
 
 import javax.microedition.khronos.opengles.GL10;
 
@@ -8,6 +10,7 @@ import org.jiagjl.drawtext.LabelMaker;
 import org.jiagjl.drawtext.matrix.MatrixTrackingGL;
 
 import org.jiagjl.drawtext.NumericSprite;
+
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -23,7 +26,9 @@ public class ShadowsView extends GLBase {
 	 * agalan: He cambiado el nombre de la variable de 'si' a 'solarInformation'.
 	 */
 	SolarInformation solarInformation;
-	int time_window = 4*60; //En minutos
+	TimeZone tz=TimeZone.getTimeZone("GMT+2");
+	//int time_window = 4*60; //En minutos
+	float[] origen=new float[]{0f,0f};
 	
 	float[] quad = new float[]{
 			-1.0f,-1.0f, 0.0f,
@@ -43,6 +48,7 @@ public class ShadowsView extends GLBase {
 	FloatBuffer colBuff;
 	FloatBuffer texBuff;
 	FloatBuffer shadowsBuff;
+	FloatBuffer origenBuff;
 
 	
 /*	float[] linea1 = new float[] { 0.0f, 0.0f, 0.01f, 1.3f, 0.0f, 0.01f, };
@@ -147,8 +153,15 @@ public class ShadowsView extends GLBase {
 		linea3Buff = makeFloatBuffer(linea3);
 		carreteraBuff = makeFloatBuffer(carretera);
 */		
-		solarInformation = new SolarInformation();
-		shadowsBuff=makeFloatBuffer(solarInformation.calculateShadowsRange(null, 5));
+		origenBuff=makeFloatBuffer(origen);
+
+		solarInformation=new SolarInformation();
+
+		//GregorianCalendar cal=new GregorianCalendar(2009,10,11,9,0);		
+		GregorianCalendar cal=new GregorianCalendar(tz);
+		//cal.set(2009,0,13,7,0);
+		float[] sombra=solarInformation.calculateShadowRange(5,cal);
+		shadowsBuff=makeFloatBuffer(sombra);
 	}
 	
 	public ShadowsView(Context c, AttributeSet as){
@@ -346,11 +359,17 @@ public class ShadowsView extends GLBase {
 
 	private void drawShadow(GL10 gl) {
 		gl.glEnableClientState(GL10.GL_VERTEX_ARRAY);
+		gl.glVertexPointer(2, GL10.GL_FLOAT, 0, origenBuff);
+		gl.glPointSize(10f);
+		gl.glColor4f(1f,0f,0f, 0.0f);				// Set The Color
+		gl.glDrawArrays(GL10.GL_POINTS, 0, 1);
+		
 		gl.glVertexPointer(2, GL10.GL_FLOAT, 0, shadowsBuff);
-		gl.glColor4f(1f,1f,1f, 0f);				// Set The Color
+		gl.glColor4f(1f,0f,0f, 0f);				// Set The Color
 		gl.glDrawArrays(GL10.GL_TRIANGLE_FAN, 0, shadowsBuff.capacity()/2);
 		gl.glDisableClientState(GL10.GL_VERTEX_ARRAY);
 	}
+
 
 	int mWidth;
 	int mHeight;
