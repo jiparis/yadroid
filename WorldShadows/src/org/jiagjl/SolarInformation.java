@@ -4,6 +4,7 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.TimeZone;
 
 
 
@@ -22,6 +23,10 @@ public class SolarInformation {
 	final static public int SOLAR_TIME = 101;
 	final static public int SUNRISE_TIME = 102;
 	final static public int SUNSET_TIME = 103;
+	/*
+	 * Longitud máxima de la sombra que vamos a permitir.
+	 */
+	static final public float MAX_SHADOW_LENGT = 1000f;
 
 	
 	Calendar calendar = new GregorianCalendar();//Calendar.getInstance();
@@ -209,31 +214,7 @@ public class SolarInformation {
 		return shadows;
 	}
 
-	private float[] calculateShadowRange(int stepInMinutes) {
-		// TODO Auto-generated method stub
-		
-		int size = ((int)Math.round( time_window_minutes / stepInMinutes + 0.5))*2;
-		float[] puntos = new float[size];
-		boolean isEndShadow=false;
-		int contador=0;
-		while(!isEndShadow){
-			this.compute(37.36d, -5.97d, 2.0f, calendar);
-			Date sunsetDate=getTime(SUNSET_TIME);
-			Date sunriseDate=getTime(SUNRISE_TIME);
-			
-			double shadowLength=getValue(SHADOW_LENGTH_VALUE);
-			double azimut=getValue(AZIMUT_VALUE);
-			puntos[contador]= -(float)(Math.sin(azimut*Math.PI/180)*shadowLength);
-			puntos[contador+1]=-(float)(Math.cos(azimut*Math.PI/180)*shadowLength);
-			calendar.add(Calendar.MINUTE, stepInMinutes);
-			if(contador>=size || sunsetDate.before(calendar.getTime()) || sunriseDate.after(calendar.getTime())){
-				isEndShadow=true;
-			}
-			contador=contador+2;
-		}
-		
-		return puntos;
-	}
+
 	
 	private void compute(double latitude, double longitude, float timeZone, Calendar instant) {
 		// Location in radians.
@@ -454,6 +435,153 @@ public class SolarInformation {
 
 		recalculate = false;
 	}
+	
+	
+
+	/**
+	 * Devuelve un array con las posiciones X,Y de la sombra desde la salida a la puesta de sol del día que se 
+	 * pasa como parámetro Calendar para ser dibujada mediante un GL_TRIANGLE_FAN. Así el primer punto que se le pasa
+	 * es el origen de coordenadas 0,0. 
+	 * 
+	 * @param stepInMinutes Cada cuántos minutos se calcula la sombra
+	 * @param cal El día del que se quiere obtener la sombra. Aunque también tenga la hora no se tiene en cuenta.
+	 * @return Un array de float donde cada dos valores representan las coordenadas X,Y del extremo de la sombra. 
+	 * El punto inicial siempre es el origen 0,0 para que se dibuje bien mediante GL_TRIANGLE_FAN.
+	 * 
+	 */
+	synchronized public float[] calculateShadowRange(int stepInMinutes, Calendar cal) {
+		// TODO Auto-generated method stub
+		if(cal==null){
+			cal=this.calendar;
+		}
+		int size = ((int)Math.round( time_window_minutes / stepInMinutes + 0.5))*2+10;
+		float[] puntos = new float[size];
+		boolean isEndShadow=false;
+		int contador=0;
+		Calendar sunsetDate=null;
+		Calendar sunriseDate=null;
+		while(!isEndShadow){
+			this.compute(37.36d, -5.97d, 2.0f, cal);
+			if(contador==0){
+				TimeZone tz=cal.getTimeZone();
+				sunsetDate=new GregorianCalendar(tz);
+				sunriseDate=new GregorianCalendar(tz);
+				
+				//SUNSET:Actualizo la hora de la puesta de SOL
+				sunsetDate.set(cal.get(Calendar.YEAR), cal.get(Calendar.MONTH),
+						cal.get(Calendar.DAY_OF_MONTH),
+						this.getTime(SUNSET_TIME).getHours() , 
+						this.getTime(SUNSET_TIME).getMinutes()-5);
+				sunsetDate.setTimeZone(tz);
+				//SUNRISE:Actualizo la hora de la salida de SOL
+				sunriseDate.set(cal.get(Calendar.YEAR), cal.get(Calendar.MONTH),
+						cal.get(Calendar.DAY_OF_MONTH),
+						this.getTime(SUNRISE_TIME).getHours() , 
+						this.getTime(SUNRISE_TIME).getMinutes()+5);
+				sunriseDate.setTimeZone(tz);
+				
+				/**
+				 * Sitúo la hora actual a la de la Salida del sol para que me muestre todo el día.
+				 */
+				cal.set(Calendar.HOUR, sunriseDate.get(Calendar.HOUR));
+				cal.set(Calendar.MINUTE, sunriseDate.get(Calendar.MINUTE));
+				this.compute(37.36d, -5.97d, 2.0f, cal);
+				
+				
+				
+				/***COMENTARIOS***/
+				System.out.println("SUNSET:"+sunsetDate.getTime());
+				System.out.println("SUNRISE:"+sunriseDate.getTime());
+				System.out.println("AHORA:"+cal.getTime());
+				
+			}
+			double shadowLength=getValue(SHADOW_LENGTH_VALUE);
+			
+			/**Esta comparación solo tiene sentido si vamos a mostrar el sol desde un momento dado
+			 * si vamos a mostrar todo el día deja de tener sentido.
+			 * Intenta controlar que si la hora es previa a la salida del sol entonces la longitud
+			 * de la sombra debe ser 0
+			 */
+			/*if(sunriseDate.get(Calendar.HOUR_OF_DAY)<cal.get(Calendar.HOUR_OF_DAY)||
+					(sunriseDate.get(Calendar.HOUR_OF_DAY)==cal.get(Calendar.HOUR_OF_DAY)
+							&&sunsetDate.get(Calendar.MINUTE)<=cal.get(Calendar.MINUTE))){
+				shadowLength=getValue(SHADOW_LENGTH_VALUE);
+			}else{
+				shadowLength=0f;
+				cal.set(Calendar.HOUR, sunriseDate.get(Calendar.HOUR));
+				cal.set(Calendar.MINUTE, sunriseDate.get(Calendar.MINUTE));
+				continue;
+			}*/
+
+			
+			
+			
+			double azimut=getValue(AZIMUT_VALUE);
+			shadowLength=(shadowLength>MAX_SHADOW_LENGT?MAX_SHADOW_LENGT:shadowLength);
+			float X=-(float)(Math.sin(azimut*Math.PI/180)*shadowLength);
+			float Y=-(float)(Math.cos(azimut*Math.PI/180)*shadowLength);
+			puntos[contador]= X;
+			puntos[contador+1]=Y;
+			System.out.println(cal.get(Calendar.HOUR_OF_DAY)+":"+cal.get(Calendar.MINUTE)+" X:"+puntos[contador]+"f, Y:"+puntos[contador+1]+"f,"+": Azimut:"+azimut+" Longitud sombra:"+shadowLength);
+			cal.add(Calendar.MINUTE, stepInMinutes);
+			
+			
+			/* 
+			 * Comprobación de que la hora no sobrepase la de la caída del sol.
+			 * Si es así termina el bucle.
+			 */
+			if(contador>=size-2 || sunsetDate.get(Calendar.HOUR_OF_DAY)<cal.get(Calendar.HOUR_OF_DAY)||
+					(sunsetDate.get(Calendar.HOUR_OF_DAY)==cal.get(Calendar.HOUR_OF_DAY)
+							&&sunsetDate.get(Calendar.MINUTE)<=cal.get(Calendar.MINUTE))){
+				isEndShadow=true;
+			}
+			else{
+				//System.out.println(sunsetDate.get(Calendar.HOUR_OF_DAY)+":"+sunsetDate.get(Calendar.MINUTE)+"*******SUNSET"+sunsetDate.getTime());
+				//System.out.println(cal.get(Calendar.HOUR_OF_DAY)+":"+cal.get(Calendar.MINUTE)+"**********AHORA:"+cal.getTime());				
+				contador=contador+2;
+			}
+		}
+		
+		/*
+		 * Creo un nuevo array con la capacidad justa de los puntos ya que OpenGL
+		 * tienen comportamientos extraños si le pasas un array con un tamaño superior
+		 * al de los puntos que contiene.
+		 */
+		int capacidad=contador+4;
+		float[] puntos2=new float[capacidad];
+		puntos2[0]=puntos2[1]=0f;
+		for(int i=2;i<capacidad;i++){
+			puntos2[i]=puntos[i];
+		}
+		return puntos2;
+	}
+	
+	
+	/*
+	 * Un método de prueba que devuelve en un array de floats  que representan una cuarta de circunferencia
+	 */
+	public float[] calculaSombraTest(){
+		
+		float[] puntos2=new float[36];
+		puntos2[0]=puntos2[1]=0;
+		float angle=0;
+		for(int i=0;i<17;i++){
+			angle=(float)((Math.PI/32)*i);
+			float x=(float)(5*Math.cos(angle));
+			float y=(float)(5*Math.sin(angle));
+			puntos2[2*i+2]=(x<0.1f?0:x);
+			puntos2[2*i+3]=(y<0.1f?0:y);
+		}
+		for(int i=0;i<puntos2.length;i=i+2){
+			System.out.println(puntos2[i]+" , "+puntos2[i+1]);
+		}
+
+		return puntos2;
+	}
+
+	
+	
+	
 	
 
 	static public void main( String[] argv ) {
