@@ -352,20 +352,23 @@ public class ShadowsView extends GLBase {
 			drawPoste(gl);
 		gl.glPopMatrix();
 	
+		gl.glPushMatrix();
+		synchronized (this) {
+			//Obtenemos la matriz de rotación simultanea en los 3 ejes
+			Utils.quatToMatrix( qm, 0, Utils.eulerToQuat((float)(-xrot*Math.PI/180.0), (float)(yrot*Math.PI/180.0), (float)(rquad*Math.PI/180.0)) );
+			//La aplicamos al modelo multiplicandola con OpenGL
+			gl.glMultMatrixf(qm, 0);
+		}
 			drawShadow(gl);
+		gl.glPopMatrix();
 	}
 
 
 
 	private void drawShadow(GL10 gl) {
-		gl.glEnableClientState(GL10.GL_VERTEX_ARRAY);
-		gl.glVertexPointer(2, GL10.GL_FLOAT, 0, origenBuff);
-		gl.glPointSize(10f);
-		gl.glColor4f(1f,0f,0f, 0.0f);				// Set The Color
-		gl.glDrawArrays(GL10.GL_POINTS, 0, 1);
-		
+		gl.glEnableClientState(GL10.GL_VERTEX_ARRAY);	
 		gl.glVertexPointer(2, GL10.GL_FLOAT, 0, shadowsBuff);
-		gl.glColor4f(1f,0f,0f, 0f);				// Set The Color
+		gl.glColor4f(1f,0f,0f, 1f);				// Set The Color
 		gl.glDrawArrays(GL10.GL_TRIANGLE_FAN, 0, shadowsBuff.capacity()/2);
 		gl.glDisableClientState(GL10.GL_VERTEX_ARRAY);
 	}
