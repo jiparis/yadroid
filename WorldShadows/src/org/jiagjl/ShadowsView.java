@@ -44,9 +44,17 @@ public class ShadowsView extends GLBase {
 			1.0f, 0.0f		// top-right	 
 	};
 	
+	float worldCoords[] = new float[] {
+		0.0f, 3.0f,
+		3.0f, 3.0f,
+		0.0f, 0.0f,
+		3.0f, 0.0f
+	
+	};
 	FloatBuffer quadBuff;
 	FloatBuffer colBuff;
 	FloatBuffer texBuff;
+	FloatBuffer worldBuff;
 	FloatBuffer shadowsBuff;
 	FloatBuffer origenBuff;
 
@@ -69,8 +77,10 @@ public class ShadowsView extends GLBase {
 	float yrot = 0.0f;
 	
 	int compassTex;
+	int worldTex;
 	
 	Bitmap bmp;
+	Bitmap world;
 	
 	Context context;
 	
@@ -145,7 +155,9 @@ public class ShadowsView extends GLBase {
 		super(c, 5);
 		quadBuff = makeFloatBuffer(quad);
 		texBuff = makeFloatBuffer(texCoords);
+		worldBuff = makeFloatBuffer(worldCoords);
 		bmp = BitmapFactory.decodeResource(c.getResources(), R.drawable.compass);
+		world = BitmapFactory.decodeResource(c.getResources(), R.drawable.grass);
 		context = c;        
 
 /*		linea1Buff = makeFloatBuffer(linea1);
@@ -207,9 +219,10 @@ public class ShadowsView extends GLBase {
 		
 		// Load textures
 		compassTex = loadTexture(gl, bmp);
+		worldTex = loadTexture(gl, world);
 		
 		// lights
-		gl.glEnable(GL10.GL_LIGHTING);
+		//gl.glEnable(GL10.GL_LIGHTING);
 		gl.glEnable(GL10.GL_LIGHT0);
 
 		gl.glLightfv(GL10.GL_LIGHT0, GL10.GL_AMBIENT, lightAmbient,	0);
@@ -262,7 +275,7 @@ public class ShadowsView extends GLBase {
 		
 		gl.glClear(GL10.GL_COLOR_BUFFER_BIT | GL10.GL_DEPTH_BUFFER_BIT);	// Clear The Screen And The Depth Buffer
 		gl.glMatrixMode(GL10.GL_MODELVIEW);		
-		gl.glColor4f(1.0f,1.0f,1.0f, 0.0f);				// Set The Color
+		//gl.glColor4f(1.0f,1.0f,1.0f, 0.0f);				// Set The Color
 		gl.glLoadIdentity();					// Reset The View, loading the identity matrix
 		gl.glTranslatef(0,0,-10); // center scene
 
@@ -271,8 +284,6 @@ public class ShadowsView extends GLBase {
 		//La Z se utiliza para saber el orden de pintado. Si es >= 0
 		//se pinta sobre la perspectiva que estamos haciendo
         
-		
-		
 		
 		float shadow = (float)solarInformation.getValue(SolarInformation.SHADOW_LENGTH_VALUE);
 
@@ -293,6 +304,18 @@ public class ShadowsView extends GLBase {
 	        mNumericSprite.draw(gl, (mWidth+width)/2, mHeight-mLabels.getHeight(mLabelNA), mWidth, mHeight);
         }
 
+        gl.glPushMatrix();
+        	//Rotación de la brújula en los 3 ejes
+			synchronized (this) {
+				//Obtenemos la matriz de rotación simultanea en los 3 ejes
+				Utils.quatToMatrix( qm, 0, Utils.eulerToQuat((float)(xrot*Math.PI/180.0), (float)(yrot*Math.PI/180.0), (float)(rquad*Math.PI/180.0)) );
+				//La aplicamos al modelo multiplicandola con OpenGL
+				gl.glMultMatrixf(qm, 0);
+			}
+			gl.glTranslatef(0f,0f, -0.01f); //un poco por debajo de la brújula
+			world(gl);
+		gl.glPopMatrix();
+        
 		// textured quad
 		gl.glPushMatrix(); 
 			gl.glEnable(GL10.GL_TEXTURE_2D);						// Enable Texture Mapping 
@@ -300,7 +323,7 @@ public class ShadowsView extends GLBase {
 			//Rotación de la brújula en los 3 ejes
 			synchronized (this) {
 				//Obtenemos la matriz de rotación simultanea en los 3 ejes
-				Utils.quatToMatrix( qm, 0, Utils.eulerToQuat((float)(-xrot*Math.PI/180.0), (float)(yrot*Math.PI/180.0), (float)(rquad*Math.PI/180.0)) );
+				Utils.quatToMatrix( qm, 0, Utils.eulerToQuat((float)(xrot*Math.PI/180.0), (float)(yrot*Math.PI/180.0), (float)(rquad*Math.PI/180.0)) );
 				//La aplicamos al modelo multiplicandola con OpenGL
 				gl.glMultMatrixf(qm, 0);
 			}
@@ -330,8 +353,7 @@ public class ShadowsView extends GLBase {
 	        mLabels.draw(gl, quad[6], quad[7], quad[8], mLabelNW, 0);
 	        mLabels.draw(gl, quad[9], quad[10], quad[11], mLabelNE, 0);
 	        mLabels.endDrawing(gl);
-		gl.glPopMatrix();
-		
+		gl.glPopMatrix();	
 		
 		
 		// Dibuja el poste
@@ -342,7 +364,7 @@ public class ShadowsView extends GLBase {
 			//Rotación del poste en x e y
 			synchronized (this) {
 				//Obtenemos la matriz de rotación simultanea en los ejes x, y
-				Utils.quatToMatrix( qm, 0, Utils.eulerToQuat((float)(-xrot*Math.PI/180.0), (float)(yrot*Math.PI/180.0), 0) );
+				Utils.quatToMatrix( qm, 0, Utils.eulerToQuat((float)(xrot*Math.PI/180.0), (float)(yrot*Math.PI/180.0), 0) );
 				//La aplicamos al modelo multiplicandola con OpenGL
 				gl.glMultMatrixf(qm, 0);
 			}			
@@ -353,22 +375,42 @@ public class ShadowsView extends GLBase {
 		gl.glPopMatrix();
 	
 		gl.glPushMatrix();
-		synchronized (this) {
-			//Obtenemos la matriz de rotación simultanea en los 3 ejes
-			Utils.quatToMatrix( qm, 0, Utils.eulerToQuat((float)(-xrot*Math.PI/180.0), (float)(yrot*Math.PI/180.0), (float)(rquad*Math.PI/180.0)) );
-			//La aplicamos al modelo multiplicandola con OpenGL
-			gl.glMultMatrixf(qm, 0);
-		}
+			synchronized (this) {
+				//Obtenemos la matriz de rotación simultanea en los 3 ejes
+				Utils.quatToMatrix( qm, 0, Utils.eulerToQuat((float)(xrot*Math.PI/180.0), (float)(yrot*Math.PI/180.0), (float)(rquad*Math.PI/180.0)) );
+				//La aplicamos al modelo multiplicandola con OpenGL
+				gl.glMultMatrixf(qm, 0);
+			}
 			drawShadow(gl);
 		gl.glPopMatrix();
 	}
 
-
+	private void world(GL10 gl) {
+    	gl.glEnable(GL10.GL_TEXTURE_2D);
+    	
+    	gl.glScalef(10f, 10f, 1.0f);
+		// textura a aplicar
+		gl.glBindTexture(GL10.GL_TEXTURE_2D, worldTex);
+	
+		// send vertices to the renderer
+		gl.glVertexPointer(3, GL10.GL_FLOAT, 0, quadBuff);
+		gl.glEnableClientState(GL10.GL_VERTEX_ARRAY);
+			
+		// send texture coords to the renderer
+		gl.glTexCoordPointer(2, GL10.GL_FLOAT, 0, texBuff);
+		gl.glEnableClientState(GL10.GL_TEXTURE_COORD_ARRAY);	
+			
+		// draw!
+		gl.glNormal3f(0,0,1.0f);
+		gl.glDrawArrays(GL10.GL_TRIANGLE_STRIP, 0, 4);		
+	}
 
 	private void drawShadow(GL10 gl) {
+		gl.glDisable(GL10.GL_TEXTURE_2D);
+		gl.glShadeModel(GL10.GL_SMOOTH);
 		gl.glEnableClientState(GL10.GL_VERTEX_ARRAY);	
 		gl.glVertexPointer(2, GL10.GL_FLOAT, 0, shadowsBuff);
-		gl.glColor4f(1f,0f,0f, 1f);				// Set The Color
+		gl.glColor4f(1f,0f,0f, 0.5f);				// Set The Color
 		gl.glDrawArrays(GL10.GL_TRIANGLE_FAN, 0, shadowsBuff.capacity()/2);
 		gl.glDisableClientState(GL10.GL_VERTEX_ARRAY);
 	}
