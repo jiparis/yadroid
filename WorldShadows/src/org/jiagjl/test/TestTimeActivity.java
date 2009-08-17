@@ -1,11 +1,9 @@
 package org.jiagjl.test;
 
 import org.jiagjl.R;
-import org.jiagjl.ShadowsActivity;
 import org.jiagjl.controls.TimeSeekBar;
 
 import android.app.Activity;
-import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
@@ -23,7 +21,7 @@ public class TestTimeActivity extends Activity {
 		// 10:30 a 18:00, y con una granularidad de movimiento de 30 minutos.
 		// Los valores horarios los vuelca en el log
 		TimeSeekBar timeSeekBar = new TimeSeekBar(getApplicationContext(), 8f,
-				22f, 30, 10.5f, 18f, new TimeSeekBar.ITimeBarCallback() {
+				22f, 30, 0, new TimeSeekBar.ITimeBarCallback() {
 					public void onEndTimeValueChange(int hour, int minute) {
 						Log.i( "SHADOWS", "End: " + hour + ":" + minute  );
 					}
@@ -33,8 +31,10 @@ public class TestTimeActivity extends Activity {
 					}
 				}, false);
 
+		timeSeekBar.setTime(10.5f, 18f);
 		setContentView(timeSeekBar);
 	}
+	
 
     /* Creates the menu items */
     public boolean onCreateOptionsMenu(Menu menu) {

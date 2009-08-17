@@ -365,6 +365,7 @@ public class LabelMaker {
         gl.glTranslatef(snappedX, snappedY, 0.0f);
         Label label = mLabels.get(labelID);
         gl.glEnable(GL10.GL_TEXTURE_2D);
+        gl.glBindTexture(GL10.GL_TEXTURE_2D, mTextureID);
         ((GL11)gl).glTexParameteriv(GL10.GL_TEXTURE_2D,
                 GL11Ext.GL_TEXTURE_CROP_RECT_OES, label.mCrop, 0);
         ((GL11Ext)gl).glDrawTexiOES((int) snappedX, (int) snappedY, z,

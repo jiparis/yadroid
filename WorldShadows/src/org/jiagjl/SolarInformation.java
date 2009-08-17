@@ -28,29 +28,38 @@ public class SolarInformation {
 	 */
 	static final public float MAX_SHADOW_LENGT = 1000f;
 
+	static public int DEFAULT_TIME_WINDOW = 4 * 60;
+	static public double DEFAULT_LATITUDE  = 37.36d;
+	static public double DEFAULT_LONGITUDE = -5.97d;
 	
 	Calendar calendar = new GregorianCalendar();//Calendar.getInstance();
 	float time_zone   = calendar.get(Calendar.ZONE_OFFSET) / 3600000.0f; // 1000 * 60 * 60
 	double latitude   = 37.36d;
 	double longitude  = -5.97d;
-	int time_window_minutes = 24*60; //En minutos
+	int time_window = 24*60; //En minutos
 
 	boolean recalculate = true;
 	
+	public SolarInformation() {
+		now();
+		latitude   = DEFAULT_LATITUDE;
+		longitude  = DEFAULT_LONGITUDE;
+		time_window = DEFAULT_TIME_WINDOW;		
+	}
 	
 	synchronized public void setTimeZone( float timeZone ) {
 		time_zone = timeZone;
 		recalculate = true;
 	}
 
-	synchronized public void setTimeWindow( int timeWindow ) {
-		time_window_minutes = timeWindow;
+	synchronized public void setTimeWindow( int minutes ) {
+		time_window = minutes;
 	}
 	
 	synchronized public void setEndTime( int hour, int minute ) {
-		time_window_minutes = (hour*60+minute)-(calendar.get(Calendar.HOUR_OF_DAY)*60+calendar.get(Calendar.MINUTE));;
-		if ( time_window_minutes < 0 )
-			time_window_minutes = 4*60;
+		time_window = (hour*60+minute)-(calendar.get(Calendar.HOUR_OF_DAY)*60+calendar.get(Calendar.MINUTE));
+		if ( time_window < 0 )
+			time_window = DEFAULT_TIME_WINDOW;
 	}
 	
 	synchronized public void setPosition( double latitude, double longitude ) {
@@ -62,13 +71,19 @@ public class SolarInformation {
 	synchronized public void setDate( int year, int month, int day ) {
 		calendar.set(Calendar.YEAR, year);
 		calendar.set(Calendar.MONTH, month);
-		calendar.set(Calendar.DAY_OF_MONTH, 18);
+		calendar.set(Calendar.DAY_OF_MONTH, day);
 		recalculate = true;
 	}
 	
 	synchronized public void setTime( int hour, int minute ) {
 		calendar.set(Calendar.HOUR_OF_DAY, hour);
 		calendar.set(Calendar.MINUTE, minute);
+		recalculate = true;
+	}
+	
+	synchronized public void now() {
+		calendar = new GregorianCalendar();
+		time_zone   = calendar.get(Calendar.ZONE_OFFSET) / 3600000.0f; // 1000 * 60 * 60
 		recalculate = true;
 	}
 	
@@ -93,9 +108,9 @@ public class SolarInformation {
 	double fShadowLength;
 
 	synchronized public double getValue(int field) {
-		/*if ( recalculate )
+		if ( recalculate )
 			compute(latitude, longitude, time_zone, calendar );
-*/
+
 		double res = 0;
 		switch (field) {
 		case LOCAL_VALUE:
@@ -120,7 +135,7 @@ public class SolarInformation {
 			res = fShadowLength;
 			break;
 		case TIME_WINDOW_VALUE:
-			res = (float)time_window_minutes;
+			res = (float)time_window;
 			break;
 		default:
 			break;
@@ -132,9 +147,9 @@ public class SolarInformation {
 	 * agalan: He modificado este método para que en vez de String devuelva un java.util.Date
 	 */
 	synchronized public Date getTime(int field) {
-/*		if ( recalculate )
+		if ( recalculate )
 			compute(latitude, longitude, time_zone, calendar );
-*/		
+		
 		double res = 0;
 		switch (field) {
 		case LOCAL_TIME:
@@ -152,7 +167,6 @@ public class SolarInformation {
 		default:
 			break;
 		}
-		String minute, hour;
 		int t = (int) Math.floor(res);
 		int m = (int) Math.floor((res - t) * 60.0);
 		
@@ -450,108 +464,118 @@ public class SolarInformation {
 	 * 
 	 */
 	synchronized public float[] calculateShadowRange(int stepInMinutes, Calendar cal) {
-		// TODO Auto-generated method stub
-		if(cal==null){
-			cal=this.calendar;
-		}
-		int size = ((int)Math.round( time_window_minutes / stepInMinutes + 0.5))*2+10;
-		float[] puntos = new float[size];
-		boolean isEndShadow=false;
-		int contador=0;
-		Calendar sunsetDate=null;
-		Calendar sunriseDate=null;
-		while(!isEndShadow){
-			this.compute(37.36d, -5.97d, 2.0f, cal);
-			if(contador==0){
-				TimeZone tz=cal.getTimeZone();
-				sunsetDate=new GregorianCalendar(tz);
-				sunriseDate=new GregorianCalendar(tz);
-				
-				//SUNSET:Actualizo la hora de la puesta de SOL
-				sunsetDate.set(cal.get(Calendar.YEAR), cal.get(Calendar.MONTH),
-						cal.get(Calendar.DAY_OF_MONTH),
-						this.getTime(SUNSET_TIME).getHours() , 
-						this.getTime(SUNSET_TIME).getMinutes()-5);
-				sunsetDate.setTimeZone(tz);
-				//SUNRISE:Actualizo la hora de la salida de SOL
-				sunriseDate.set(cal.get(Calendar.YEAR), cal.get(Calendar.MONTH),
-						cal.get(Calendar.DAY_OF_MONTH),
-						this.getTime(SUNRISE_TIME).getHours() , 
-						this.getTime(SUNRISE_TIME).getMinutes()+5);
-				sunriseDate.setTimeZone(tz);
-				
-				/**
-				 * Sitúo la hora actual a la de la Salida del sol para que me muestre todo el día.
-				 */
-				cal.set(Calendar.HOUR_OF_DAY, sunriseDate.get(Calendar.HOUR_OF_DAY));
-				cal.set(Calendar.MINUTE, sunriseDate.get(Calendar.MINUTE));
-				this.compute(37.36d, -5.97d, 2.0f, cal);
-				
-				
-				
-				/***COMENTARIOS***/
-				System.out.println("SUNSET:"+sunsetDate.getTime());
-				System.out.println("SUNRISE:"+sunriseDate.getTime());
-				System.out.println("AHORA:"+cal.getTime());
-				
-			}
-			double shadowLength=getValue(SHADOW_LENGTH_VALUE);
-			
-			/**Esta comparación solo tiene sentido si vamos a mostrar el sol desde un momento dado
-			 * si vamos a mostrar todo el día deja de tener sentido.
-			 * Intenta controlar que si la hora es previa a la salida del sol entonces la longitud
-			 * de la sombra debe ser 0
-			 */
-			/*if(sunriseDate.get(Calendar.HOUR_OF_DAY)<cal.get(Calendar.HOUR_OF_DAY)||
-					(sunriseDate.get(Calendar.HOUR_OF_DAY)==cal.get(Calendar.HOUR_OF_DAY)
-							&&sunsetDate.get(Calendar.MINUTE)<=cal.get(Calendar.MINUTE))){
-				shadowLength=getValue(SHADOW_LENGTH_VALUE);
-			}else{
-				shadowLength=0f;
-				cal.set(Calendar.HOUR, sunriseDate.get(Calendar.HOUR));
-				cal.set(Calendar.MINUTE, sunriseDate.get(Calendar.MINUTE));
-				continue;
-			}*/
-			
-			double azimut=getValue(AZIMUT_VALUE);
-			shadowLength=(shadowLength>MAX_SHADOW_LENGT?MAX_SHADOW_LENGT:shadowLength);
-			float X=-(float)(Math.sin(azimut*Math.PI/180)*shadowLength);
-			float Y=-(float)(Math.cos(azimut*Math.PI/180)*shadowLength);
-			puntos[contador]= X;
-			puntos[contador+1]=Y;
-			System.out.println(cal.get(Calendar.HOUR_OF_DAY)+":"+cal.get(Calendar.MINUTE)+" X:"+puntos[contador]+"f, Y:"+puntos[contador+1]+"f,"+": Azimut:"+azimut+" Longitud sombra:"+shadowLength);
-			cal.add(Calendar.MINUTE, stepInMinutes);
-						
-			/* 
-			 * Comprobación de que la hora no sobrepase la de la caída del sol.
-			 * Si es así termina el bucle.
-			 */
-			if(contador>=size-2 || sunsetDate.get(Calendar.HOUR_OF_DAY)<cal.get(Calendar.HOUR_OF_DAY)||
-					(sunsetDate.get(Calendar.HOUR_OF_DAY)==cal.get(Calendar.HOUR_OF_DAY)
-							&&sunsetDate.get(Calendar.MINUTE)<=cal.get(Calendar.MINUTE))){
-				isEndShadow=true;
-			}
-			else{
-				//System.out.println(sunsetDate.get(Calendar.HOUR_OF_DAY)+":"+sunsetDate.get(Calendar.MINUTE)+"*******SUNSET"+sunsetDate.getTime());
-				//System.out.println(cal.get(Calendar.HOUR_OF_DAY)+":"+cal.get(Calendar.MINUTE)+"**********AHORA:"+cal.getTime());				
-				contador=contador+2;
-			}
-		}
-		
-		/*
-		 * Creo un nuevo array con la capacidad justa de los puntos ya que OpenGL
-		 * tienen comportamientos extraños si le pasas un array con un tamaño superior
-		 * al de los puntos que contiene.
-		 */
-		int capacidad=contador+4;
-		float[] puntos2=new float[capacidad];
-		puntos2[0]=puntos2[1]=0f;
-		for(int i=2;i<capacidad;i++){
-			puntos2[i]=puntos[i];
-		}
-		return puntos2;
-	}
+        // TODO Auto-generated method stub
+        if(cal==null){
+            cal=this.calendar;
+        }
+        int size = ((int)Math.round( 24*60 / stepInMinutes + 0.5))*2+10;
+        float[] puntos = new float[size];
+        boolean isEndShadow=false;
+        int contador=0;
+        Calendar sunsetDate=null;
+        Calendar sunriseDate=null;
+        while(!isEndShadow){
+            float[] puntoSombra=calculatePointShadow(cal);
+            //this.compute(37.36d, -5.97d, 2.0f, cal);
+            if(contador==0){
+                TimeZone tz=cal.getTimeZone();
+                sunsetDate=new GregorianCalendar(tz);
+                sunriseDate=new GregorianCalendar(tz);
+                
+                //SUNSET:Actualizo la hora de la puesta de SOL
+                sunsetDate.set(cal.get(Calendar.YEAR), cal.get(Calendar.MONTH),
+                        cal.get(Calendar.DAY_OF_MONTH),
+                        this.getTime(SUNSET_TIME).getHours() , 
+                        this.getTime(SUNSET_TIME).getMinutes()-5);
+                sunsetDate.setTimeZone(tz);
+                //SUNRISE:Actualizo la hora de la salida del SOL
+                sunriseDate.set(cal.get(Calendar.YEAR), cal.get(Calendar.MONTH),
+                        cal.get(Calendar.DAY_OF_MONTH),
+                        this.getTime(SUNRISE_TIME).getHours() , 
+                        this.getTime(SUNRISE_TIME).getMinutes()+5);
+                sunriseDate.setTimeZone(tz);
+                
+                /**
+                 * Sitúo la hora actual a la de la Salida del sol para que me muestre todo el día.
+                 */
+                cal.set(Calendar.HOUR_OF_DAY, sunriseDate.get(Calendar.HOUR_OF_DAY));
+                cal.set(Calendar.MINUTE, sunriseDate.get(Calendar.MINUTE));
+                this.compute(37.36d, -5.97d, 2.0f, cal);
+                
+                
+                
+                /***COMENTARIOS***/
+//                System.out.println("SUNSET:"+sunsetDate.getTime());
+//                System.out.println("SUNRISE:"+sunriseDate.getTime());
+//                System.out.println("AHORA:"+cal.getTime());
+                
+            }
+            
+            /**Esta comparación solo tiene sentido si vamos a mostrar el sol desde un momento dado
+             * si vamos a mostrar todo el día deja de tener sentido.
+             * Intenta controlar que si la hora es previa a la salida del sol entonces la longitud
+             * de la sombra debe ser 0
+             */
+            /*if(sunriseDate.get(Calendar.HOUR_OF_DAY)<cal.get(Calendar.HOUR_OF_DAY)||
+                    (sunriseDate.get(Calendar.HOUR_OF_DAY)==cal.get(Calendar.HOUR_OF_DAY)
+                            &&sunsetDate.get(Calendar.MINUTE)<=cal.get(Calendar.MINUTE))){
+                shadowLength=getValue(SHADOW_LENGTH_VALUE);
+            }else{
+                shadowLength=0f;
+                cal.set(Calendar.HOUR, sunriseDate.get(Calendar.HOUR));
+                cal.set(Calendar.MINUTE, sunriseDate.get(Calendar.MINUTE));
+                continue;
+            }*/
+
+            
+            
+            
+/*            double azimut=getValue(AZIMUT_VALUE);
+            shadowLength=(shadowLength>MAX_SHADOW_LENGT?MAX_SHADOW_LENGT:shadowLength);
+            float X=-(float)(Math.sin(azimut*Math.PI/180)*shadowLength);
+            float Y=-(float)(Math.cos(azimut*Math.PI/180)*shadowLength);
+*/            
+            puntos[contador]= puntoSombra[0];
+            puntos[contador+1]=puntoSombra[1];
+            cal.add(Calendar.MINUTE, stepInMinutes);
+            
+            
+            /* 
+             * Comprobación de que la hora no sobrepase la de la caída del sol.
+             * Si es así termina el bucle.
+             */
+            if(contador>=size-2 || sunsetDate.get(Calendar.HOUR_OF_DAY)<cal.get(Calendar.HOUR_OF_DAY)||
+                    (sunsetDate.get(Calendar.HOUR_OF_DAY)==cal.get(Calendar.HOUR_OF_DAY)
+                            &&sunsetDate.get(Calendar.MINUTE)<=cal.get(Calendar.MINUTE))){
+                isEndShadow=true;
+            }
+            else{
+                //System.out.println(sunsetDate.get(Calendar.HOUR_OF_DAY)+":"+sunsetDate.get(Calendar.MINUTE)+"*******SUNSET"+sunsetDate.getTime());
+                //System.out.println(cal.get(Calendar.HOUR_OF_DAY)+":"+cal.get(Calendar.MINUTE)+"**********AHORA:"+cal.getTime());                
+                contador=contador+2;
+            }
+        }
+        int capacidad=contador+4;
+        float[] puntos2=new float[capacidad];
+        puntos2[0]=puntos2[1]=0f;
+        for(int i=2;i<capacidad;i++){
+            puntos2[i]=puntos[i];
+        }
+        return puntos2;
+    }
 	
+	synchronized private float[] calculatePointShadow(Calendar instant){
+        float puntos[] = new float[2]; 
+        this.compute(37.36d, -5.97d, 2.0f, instant);        
+        double azimut=getValue(AZIMUT_VALUE);
+        double shadowLength=getValue(SHADOW_LENGTH_VALUE);
+        shadowLength=(shadowLength>MAX_SHADOW_LENGT?MAX_SHADOW_LENGT:shadowLength);
+        puntos[0]=-(float)(Math.sin(azimut*Math.PI/180)*shadowLength);
+        puntos[1]=-(float)(Math.cos(azimut*Math.PI/180)*shadowLength);
+//        System.out.println(instant.get(Calendar.HOUR_OF_DAY)+":"+instant.get(Calendar.MINUTE)+" X:"+puntos[0]+"f, Y:"+puntos[1]+"f,"+": Azimut:"+azimut+" Longitud sombra:"+shadowLength);
+        return puntos;
+
+    }
 	
 	/*
 	 * Un método de prueba que devuelve en un array de floats  que representan una cuarta de circunferencia
@@ -568,15 +592,86 @@ public class SolarInformation {
 			puntos2[2*i+2]=(x<0.1f?0:x);
 			puntos2[2*i+3]=(y<0.1f?0:y);
 		}
-		for(int i=0;i<puntos2.length;i=i+2){
-			System.out.println(puntos2[i]+" , "+puntos2[i+1]);
-		}
+//		for(int i=0;i<puntos2.length;i=i+2){
+//			System.out.println(puntos2[i]+" , "+puntos2[i+1]);
+//		}
 
 		return puntos2;
 	}
 
 	
-	
+	synchronized public float[] calculateStripShadow(Calendar instant){
+        /*
+         * La franja de sombra será descrita por cuatro puntos, el origen, la sombra en el instante pasado como parámetro
+         *  y dos puntos que representan la sombra 5 minutos antes y después del instante pasado como parámetro.
+         */
+        float[] stripShadow=new float[8];
+        stripShadow[0]=stripShadow[1]=0f;
+        
+
+        Calendar formerInstant=new GregorianCalendar(instant.getTimeZone());
+        formerInstant.set(instant.get(Calendar.YEAR), instant.get(Calendar.MONTH),
+                instant.get(Calendar.DAY_OF_MONTH),
+                instant.get(Calendar.HOUR_OF_DAY) , 
+                instant.get(Calendar.MINUTE)-20);
+        
+        Calendar laterInstant=new GregorianCalendar(instant.getTimeZone());
+        laterInstant.set(instant.get(Calendar.YEAR), instant.get(Calendar.MONTH),
+                instant.get(Calendar.DAY_OF_MONTH),
+                instant.get(Calendar.HOUR_OF_DAY) , 
+                instant.get(Calendar.MINUTE)+20);
+        
+        float shadowPoint[]=calculatePointShadow(formerInstant);
+        //SUNSET:Actualizo la hora de la puesta de SOL
+        TimeZone tz=instant.getTimeZone();        
+        double time = this.getValue(SUNSET_VALUE);
+		int t = (int) Math.floor(time);
+		int m = (int) Math.floor((time - t) * 60.0);
+		Calendar sunsetDate = new GregorianCalendar(instant.get(Calendar.YEAR), instant.get(Calendar.MONTH),
+                instant.get(Calendar.DAY_OF_MONTH),
+                t, m-5);
+        sunsetDate.setTimeZone(tz);
+        //SUNRISE:Actualizo la hora de la salida del SOL
+        time = this.getValue(SUNRISE_VALUE);
+		t = (int) Math.floor(time);
+		m = (int) Math.floor((time - t) * 60.0);
+		Calendar sunriseDate = new GregorianCalendar(instant.get(Calendar.YEAR), instant.get(Calendar.MONTH),
+                instant.get(Calendar.DAY_OF_MONTH),
+                t, m+5);
+        sunriseDate.setTimeZone(tz);
+
+        if(instant.before(sunriseDate)||instant.after(sunsetDate)){
+            return null;
+        }
+        if(formerInstant.before(sunriseDate)){
+            formerInstant.set(Calendar.HOUR_OF_DAY, sunriseDate.get(Calendar.HOUR_OF_DAY));
+            formerInstant.set(Calendar.MINUTE, sunriseDate.get(Calendar.MINUTE)+5);
+            shadowPoint=calculatePointShadow(formerInstant);
+        }
+        
+        if(laterInstant.after(sunsetDate)){
+            laterInstant.set(Calendar.HOUR_OF_DAY, sunsetDate.get(Calendar.HOUR_OF_DAY));
+            laterInstant.set(Calendar.MINUTE, sunsetDate.get(Calendar.MINUTE)-5);
+            
+        }
+        
+        //Coordenadas del punto inicial
+        stripShadow[2]=shadowPoint[0];
+        stripShadow[3]=shadowPoint[1];
+
+        //Coordenadas del punto actual
+        shadowPoint=calculatePointShadow(instant);
+        stripShadow[4]=shadowPoint[0];
+        stripShadow[5]=shadowPoint[1];
+
+        //Coordenadas del punto final
+        shadowPoint=calculatePointShadow(laterInstant);
+        stripShadow[6]=shadowPoint[0];
+        stripShadow[7]=shadowPoint[1];
+        
+                
+        return stripShadow;
+    }	
 	
 	
 

@@ -1,12 +1,17 @@
 package org.jiagjl;
 
+import java.io.IOException;
 import java.nio.FloatBuffer;
+import java.text.DateFormat;
+import java.util.List;
+import java.util.Locale;
 import java.util.GregorianCalendar;
 import java.util.TimeZone;
 
 import javax.microedition.khronos.opengles.GL10;
 
 import org.jiagjl.drawtext.LabelMaker;
+import org.jiagjl.drawtext.MultiLabelMaker;
 import org.jiagjl.drawtext.matrix.MatrixTrackingGL;
 
 import org.jiagjl.drawtext.NumericSprite;
@@ -18,12 +23,15 @@ import android.graphics.BitmapFactory;
 import android.graphics.Paint;
 import android.hardware.SensorListener;
 import android.hardware.SensorManager;
+import android.location.Address;
+import android.location.Geocoder;
 import android.util.AttributeSet;
+import android.util.Log;
 
 public class ShadowsView extends GLBase {
 
 	/*
-	 * agalan: He cambiado el nombre de la variable de 'si' a 'solarInformation'.
+	 * agalan: He cambiado el nombre de la variable de 'solarInformation' a 'solarInformation'.
 	 */
 	SolarInformation solarInformation;
 	TimeZone tz=TimeZone.getTimeZone("GMT+2");
@@ -72,12 +80,18 @@ public class ShadowsView extends GLBase {
 
 	FloatBuffer carreteraBuff;
 */	
-	float rquad;
+	float rquad = 0f;     //Rotación que se ha aplicado a la Z en el último drawFrame 
+    float rquad_obj = 0f; //Rotación objetivo a alcanzar en la Z en sucesivos drawFrame
+	float rquad_aux;      //Valor Z actual del sensor de la brújula 
+	float rquad_aux_prev; //Valor Z anterior del sensor de la brújula, para calcular la velocidad de cambio de los valores
+
 	float xrot = 0.0f;
 	float yrot = 0.0f;
+	float xrot_aux = 0.0f;
+	float yrot_aux = 0.0f;
 	
 	int compassTex;
-	int worldTex;
+//	int worldTex;
 	
 	Bitmap bmp;
 	Bitmap world;
@@ -90,32 +104,13 @@ public class ShadowsView extends GLBase {
 
 	
 	LabelMaker mLabels;
+	MultiLabelMaker mMLabels;
 	NumericSprite mNumericSprite;
 	Paint mLabelPaint;
 	int mLabelNA;
-	int mLabelNE, mLabelSE, mLabelNW, mLabelSW, mLabelDot;
+	int mLabelNE, mLabelSE, mLabelNW, mLabelSW, mLabelDot, mLabellocation, mLabelDate;
 	float[] qm = new float[16];
 	
-	static float DEGREES_MIN = 0.0f;
-	static float DEGREES_MAX = 90.0f;
-	static float FX_MIN = 0.0f;
-	static float FX_MAX = 2.0f;
-	static float DEGREES_TO_FX_FACTOR = Utils.scaleFactor( DEGREES_MIN, DEGREES_MAX, FX_MIN, FX_MAX ); 
-	
-	static float FX_RES_MIN = fx(FX_MIN);
-	static float FX_RES_MAX = fx(FX_MAX);
-	static float FX_RES_TO_DEGREES_FACTOR = Utils.scaleFactor( FX_RES_MIN, FX_RES_MAX, DEGREES_MIN, DEGREES_MAX ); 
-
-
-	//Mapea los grados para que sigan una progresión exponencial en lugar de lineal
-	static public float softenDegrees( float angle ) {
-		return Utils.scale( fx( Utils.scale( angle, DEGREES_TO_FX_FACTOR, DEGREES_MIN, FX_MIN, FX_MAX )), FX_RES_TO_DEGREES_FACTOR, FX_RES_MIN, DEGREES_MIN, DEGREES_MAX );
-	}
-
-	static public float fx( float value ) {
-		return (float)Math.exp(value);
-	}
-
 	boolean paused = false;
 	boolean canPress = false;
 	
@@ -125,32 +120,35 @@ public class ShadowsView extends GLBase {
 		}
 
 		public void onSensorChanged(int sensor, float[] values) {
-			synchronized (this) {
+			synchronized (ShadowsView.this) {
 				if (!paused){
-					//Azimuth - z				
-					rquad = values[0];
+					//Azimuth - z
+					rquad_aux = values[0];
+					
 					//Pitch - x
-					xrot = values[1];
+					xrot_aux = values[1];
 					//Roll - y
-					yrot = values[2];	
-	
+					yrot_aux = values[2];	
+					
 					//Inclinamos la x un poco, porque es la forma natural del
 					//teléfono en la mano
-					xrot += 15.0f;
-					if ( xrot > 90.0f )
-						xrot = 90.0f;
+//					xrot += 15.0f;
+//					if ( xrot > 90.0f )
+//						xrot = 90.0f;
 					
 					//Aplicamos una conversión a los grados de rotación x e y 
 					//a través de una curva exponencial para que la inclinación
 					//no sea lineal
-					//No se si sirve para algo pero me parecía interesante hacerlo ;-)
-					xrot = softenDegrees(Math.abs(xrot))*Math.signum(xrot);
-					yrot = softenDegrees(Math.abs(yrot))*Math.signum(yrot);
+					//No se solarInformation sirve para algo pero me parecía interesante hacerlo ;-)
+//					xrot = softenDegrees(Math.abs(xrot))*Math.signum(xrot);
+//					yrot = softenDegrees(Math.abs(yrot))*Math.signum(yrot);
 				}
 			}
 	    }
 	};
 	
+    String location;
+    
 	public ShadowsView(Context c) {
 		super(c, 5);
 		quadBuff = makeFloatBuffer(quad);
@@ -170,10 +168,30 @@ public class ShadowsView extends GLBase {
 		solarInformation=new SolarInformation();
 
 		//GregorianCalendar cal=new GregorianCalendar(2009,10,11,9,0);		
-		GregorianCalendar cal=new GregorianCalendar(tz);
+//		GregorianCalendar cal=new GregorianCalendar(tz);
 		//cal.set(2009,0,13,7,0);
-		float[] sombra=solarInformation.calculateShadowRange(5,cal);
-		shadowsBuff=makeFloatBuffer(sombra);
+//		float[] sombra=solarInformation.calculateShadowRange(30,cal);
+
+		findLocation();
+	}
+
+	public void findLocation() {
+	    try {
+			Geocoder myLocation = new Geocoder(context, Locale.getDefault());   
+			List<Address> myList = myLocation.getFromLocation(SolarInformation.DEFAULT_LATITUDE, SolarInformation.DEFAULT_LONGITUDE, 1);
+			Address a = myList.get(0);
+			location = a.getLocality();
+			if ( location == null )
+				location = a.getAdminArea();
+			if ( location == null )
+				location = a.getCountryName();
+			else
+				location += ", " + a.getCountryName();
+			if ( location != null )
+				must_init_labels = true;
+		} catch (IOException e) {
+			Log.e("Location", "Error", e);
+		}
 	}
 	
 	public ShadowsView(Context c, AttributeSet as){
@@ -219,53 +237,53 @@ public class ShadowsView extends GLBase {
 		
 		// Load textures
 		compassTex = loadTexture(gl, bmp);
-		worldTex = loadTexture(gl, world);
+//		worldTex = loadTexture(gl, world);
 		
 		// lights
-		//gl.glEnable(GL10.GL_LIGHTING);
+		gl.glEnable(GL10.GL_LIGHTING);
 		gl.glEnable(GL10.GL_LIGHT0);
 
 		gl.glLightfv(GL10.GL_LIGHT0, GL10.GL_AMBIENT, lightAmbient,	0);
 		gl.glLightfv(GL10.GL_LIGHT0, GL10.GL_DIFFUSE, lightDiffuse,	0);
 		gl.glLightfv(GL10.GL_LIGHT0, GL10.GL_POSITION, lightPosition, 0);
 		
- 
-		//Los textos a pintar hay que crearlos primero usando un Paint, 
-		//para que se carguen como texturas 2D a las que haremos 
-		//referencia después
-        mLabelPaint = new Paint();
-        mLabelPaint.setTextSize(32);
-        mLabelPaint.setAntiAlias(true);
-        mLabelPaint.setARGB(0xff, 0x00, 0x00, 0x00);
-
-        if (mLabels != null) {
-            mLabels.shutdown(gl);
-        } else {
-            mLabels = new LabelMaker(true, 256, 256);
-        }
-        mLabels.initialize(gl);
-        mLabels.beginAdding(gl);
-        mLabelNA = mLabels.add(gl, "Fuera de rango", mLabelPaint);
-        mLabelSW = mLabels.add(gl, "SW", mLabelPaint);
-        mLabelNE = mLabels.add(gl, "NE", mLabelPaint);
-        mLabelSE = mLabels.add(gl, "SE", mLabelPaint);
-        mLabelNW = mLabels.add(gl, "NW", mLabelPaint);
-        mLabelDot = mLabels.add(gl, ".", mLabelPaint);
-        mLabels.endAdding(gl);
-        
-        if (mNumericSprite != null) {
-            mNumericSprite.shutdown(gl);
-        } else {
-            mNumericSprite = new NumericSprite();
-        }
-        mNumericSprite.initialize(gl, mLabelPaint);
-
+        initLabels(gl);
+       
         return mgl;
 	}
 
+	boolean must_init_labels = false;
 	
-	@Override
-	protected void drawFrame(GL10 gl) {				
+	protected void initLabels(GL10 gl){
+		if ( !must_init_labels )
+			return;
+		if ( mMLabels == null ) {
+			//Los textos a pintar hay que crearlos primero usando un Paint, 
+			//para que se carguen como texturas 2D a las que haremos 
+			//referencia después
+	        mLabelPaint = new Paint();
+	        mLabelPaint.setTextSize(16);
+	        mLabelPaint.setAntiAlias(true);
+	        mLabelPaint.setARGB(0xff, 0x00, 0x00, 0x00);
+
+			mMLabels = new MultiLabelMaker(true, mLabelPaint);
+		}        
+        String date = DateFormat.getDateInstance().format(solarInformation.getCalendar().getTime());
+        mMLabels.add(new String[] { date, (location==null?"":location), "Fuera de rango"  });
+        mLabelDate = 0;
+        mLabellocation = 1;
+        mLabelNA = 2;
+
+    	must_init_labels = false;
+	}
+	
+	
+	int frames = 0;
+	long time = System.currentTimeMillis();
+	
+    @Override
+	protected void drawFrame(GL10 gl) {
+		initLabels(gl);
 		if (isPressed() && canPress){			
 			paused = !paused;
 			canPress = false;
@@ -273,37 +291,33 @@ public class ShadowsView extends GLBase {
 		if (!isPressed())
 			canPress = true;
 		
+		if ( location == null && frames++ > 100 ) {
+			findLocation();
+			frames = 0;
+		}
+		
+		softAngles();
+
+		float[] sombra=solarInformation.calculateStripShadow(solarInformation.getCalendar());
+		shadowsBuff=makeFloatBuffer(sombra);
+
+		
 		gl.glClear(GL10.GL_COLOR_BUFFER_BIT | GL10.GL_DEPTH_BUFFER_BIT);	// Clear The Screen And The Depth Buffer
 		gl.glMatrixMode(GL10.GL_MODELVIEW);		
 		//gl.glColor4f(1.0f,1.0f,1.0f, 0.0f);				// Set The Color
 		gl.glLoadIdentity();					// Reset The View, loading the identity matrix
 		gl.glTranslatef(0,0,-5); // center scene
 
-		//Pintamos los textos en la x,y de pantalla que queramos
-		//El origen de coordenadas es la esquina inferior izquierda
-		//La Z se utiliza para saber el orden de pintado. Si es >= 0
-		//se pinta sobre la perspectiva que estamos haciendo
+    	float shadow = (float)solarInformation.getValue(SolarInformation.SHADOW_LENGTH_VALUE);
+        if ( shadow > 20.0f )
+        	mMLabels.println(gl, mLabelNA, MultiLabelMaker.HA_CENTER, MultiLabelMaker.VA_TOP );
+        else
+        	mMLabels.println(gl, (float)Math.floor(shadow*1000)/1000f, MultiLabelMaker.HA_CENTER, MultiLabelMaker.VA_TOP );
+    	mMLabels.println(gl, (int)mLabelDate, MultiLabelMaker.HA_CENTER, MultiLabelMaker.VA_TOP );
+    	if ( location != null )
+        	mMLabels.println(gl, mLabellocation, MultiLabelMaker.HA_CENTER, MultiLabelMaker.VA_TOP );
+        mMLabels.flush(gl, mWidth, mHeight);
         
-		
-		float shadow = (float)solarInformation.getValue(SolarInformation.SHADOW_LENGTH_VALUE);
-
-        if ( shadow > 20.0f ) {
-			mLabels.beginDrawing(gl, mWidth, mHeight);
-	        mLabels.draw(gl, (mWidth-mLabels.getWidth(mLabelNA))/2, mHeight-mLabels.getHeight(mLabelNA), 0, mLabelNA);
-	        mLabels.endDrawing(gl);
-        } else {
-	        float width = mLabels.getWidth(mLabelDot);	        
-			int e = (int) Math.floor(shadow);
-			int d = (int) Math.floor((shadow - e) * 1000);
-	        mNumericSprite.setValue(e);
-	        mNumericSprite.draw(gl, (mWidth-width)/2-mNumericSprite.width(), mHeight-mLabels.getHeight(mLabelNA), mWidth, mHeight);
-			mLabels.beginDrawing(gl, mWidth, mHeight);
-	        mLabels.draw(gl, (mWidth-width)/2, mHeight-mLabels.getHeight(mLabelNA), 0, mLabelDot);
-	        mLabels.endDrawing(gl);
-	        mNumericSprite.setValue(d);
-	        mNumericSprite.draw(gl, (mWidth+width)/2, mHeight-mLabels.getHeight(mLabelNA), mWidth, mHeight);
-        }
-
         gl.glPushMatrix();
         	//Rotación de la brújula en los 3 ejes
 			synchronized (this) {
@@ -321,12 +335,10 @@ public class ShadowsView extends GLBase {
 			gl.glEnable(GL10.GL_TEXTURE_2D);						// Enable Texture Mapping 
 						
 			//Rotación de la brújula en los 3 ejes
-			synchronized (this) {
-				//Obtenemos la matriz de rotación simultanea en los 3 ejes
-				Utils.quatToMatrix( qm, 0, Utils.eulerToQuat((float)(xrot*Math.PI/180.0), (float)(yrot*Math.PI/180.0), (float)(rquad*Math.PI/180.0)) );
-				//La aplicamos al modelo multiplicandola con OpenGL
-				gl.glMultMatrixf(qm, 0);
-			}
+			//Obtenemos la matriz de rotación simultanea en los 3 ejes
+			Utils.quatToMatrix( qm, 0, Utils.eulerToQuat((float)(xrot*Math.PI/180.0), (float)(yrot*Math.PI/180.0), (float)(rquad*Math.PI/180.0)) );
+			//La aplicamos al modelo multiplicandola con OpenGL
+			gl.glMultMatrixf(qm, 0);
 
 			// textura a aplicar
 			gl.glBindTexture(GL10.GL_TEXTURE_2D, compassTex);
@@ -343,16 +355,6 @@ public class ShadowsView extends GLBase {
 			gl.glNormal3f(0,0,1.0f);
 			gl.glDrawArrays(GL10.GL_TRIANGLE_STRIP, 0, 4);		
 
-			//Pinta etiquetas de dirección en cada uno de los vértices 
-			//de la brújula. Si el objeto gl no es del tipo MatrixTrackingGL,
-			//no será capaz de calcular la proyección de cada vértice,
-			//por lo que pintaría los textos en la coordenada 0,0
-			mLabels.beginDrawing(gl, mWidth, mHeight);
-	        mLabels.draw(gl, quad[0], quad[1], quad[2], mLabelSW, 0);
-	        mLabels.draw(gl, quad[3], quad[4], quad[5], mLabelSE, 0);
-	        mLabels.draw(gl, quad[6], quad[7], quad[8], mLabelNW, 0);
-	        mLabels.draw(gl, quad[9], quad[10], quad[11], mLabelNE, 0);
-	        mLabels.endDrawing(gl);
 		gl.glPopMatrix();	
 		
 		
@@ -362,12 +364,11 @@ public class ShadowsView extends GLBase {
 			gl.glTranslatef(0,0,-5); // center scene
 
 			//Rotación del poste en x e y
-			synchronized (this) {
-				//Obtenemos la matriz de rotación simultanea en los ejes x, y
-				Utils.quatToMatrix( qm, 0, Utils.eulerToQuat((float)(xrot*Math.PI/180.0), (float)(yrot*Math.PI/180.0), 0) );
-				//La aplicamos al modelo multiplicandola con OpenGL
-				gl.glMultMatrixf(qm, 0);
-			}			
+			//Obtenemos la matriz de rotación simultanea en los ejes x, y
+			Utils.quatToMatrix( qm, 0, Utils.eulerToQuat((float)(xrot*Math.PI/180.0), (float)(yrot*Math.PI/180.0), 0) );
+			//La aplicamos al modelo multiplicandola con OpenGL
+			gl.glMultMatrixf(qm, 0);
+			
 			gl.glColor4f(0, 0, 1, 1.0f);
 			gl.glTranslatef(0, 0, 0.5f);
 			gl.glScalef(0.25f, 0.25f, 1.0f);
@@ -386,19 +387,19 @@ public class ShadowsView extends GLBase {
 	}
 
 	private void world(GL10 gl) {
-    	gl.glEnable(GL10.GL_TEXTURE_2D);
+    	gl.glDisable(GL10.GL_TEXTURE_2D);
     	
     	gl.glScalef(10f, 10f, 1.0f);
 		// textura a aplicar
-		gl.glBindTexture(GL10.GL_TEXTURE_2D, worldTex);
+//		gl.glBindTexture(GL10.GL_TEXTURE_2D, worldTex);
 	
 		// send vertices to the renderer
 		gl.glVertexPointer(3, GL10.GL_FLOAT, 0, quadBuff);
 		gl.glEnableClientState(GL10.GL_VERTEX_ARRAY);
 			
 		// send texture coords to the renderer
-		gl.glTexCoordPointer(2, GL10.GL_FLOAT, 0, texBuff);
-		gl.glEnableClientState(GL10.GL_TEXTURE_COORD_ARRAY);	
+//		gl.glTexCoordPointer(2, GL10.GL_FLOAT, 0, texBuff);
+//		gl.glEnableClientState(GL10.GL_TEXTURE_COORD_ARRAY);	
 			
 		// draw!
 		gl.glNormal3f(0,0,1.0f);
@@ -407,6 +408,7 @@ public class ShadowsView extends GLBase {
 
 	private void drawShadow(GL10 gl) {
 		gl.glDisable(GL10.GL_TEXTURE_2D);
+		gl.glTranslatef(0,0,0.1f);
 		gl.glShadeModel(GL10.GL_SMOOTH);
 		gl.glEnableClientState(GL10.GL_VERTEX_ARRAY);	
 		gl.glVertexPointer(2, GL10.GL_FLOAT, 0, shadowsBuff);
@@ -478,4 +480,99 @@ public class ShadowsView extends GLBase {
 		gl.glDrawArrays(GL10.GL_TRIANGLE_STRIP, 20, 4);
 	}
 
+	static float DEGREES_MIN = 0.0f;
+	static float DEGREES_MAX = 70.0f;
+	static float FX_MIN = 0.0f;
+	static float FX_MAX = 2.0f;
+	static float DEGREES_TO_FX_FACTOR = Utils.getFactor( DEGREES_MIN, DEGREES_MAX, FX_MIN, FX_MAX ); 
+	
+	static float FX_RES_MIN = fx(FX_MIN);
+	static float FX_RES_MAX = fx(FX_MAX);
+	static float FX_RES_TO_DEGREES_FACTOR = Utils.getFactor( FX_RES_MIN, FX_RES_MAX, DEGREES_MIN, DEGREES_MAX ); 
+
+
+	//Mapea los grados para que sigan una progresión exponencial en lugar de lineal
+	static public float softenDegrees( float angle ) {
+		return Utils.scaleFactor( fx( Utils.scaleFactor( angle, DEGREES_TO_FX_FACTOR, DEGREES_MIN, FX_MIN, FX_MAX )), FX_RES_TO_DEGREES_FACTOR, FX_RES_MIN, DEGREES_MIN, DEGREES_MAX );
+	}
+
+	static public float fx( float value ) {
+		return (float)Math.exp(value);
+	}
+
+	public boolean toggleX = false;
+	
+	private void softAngles() {
+		synchronized (this) {
+//			Log.i("", ""+rquad_aux );
+			float delta = rquad_aux-rquad_aux_prev;
+			float speed = Math.abs(delta) / (System.currentTimeMillis()-time);
+			if ( speed < 0.01f )
+				rquad_obj = rquad_aux;
+			time = System.currentTimeMillis();
+			rquad_aux_prev = rquad_aux;
+
+			float inc = 1;
+			delta = rquad_obj-rquad; 
+										   
+			if ( Math.abs(delta) > 180 )
+				delta = delta-(360 * Math.signum(delta));
+			
+			if ( -1 <= delta && delta <= 1 )
+				inc = delta;
+			else if ( -5 <= delta && delta <= 5 )
+				inc = 1 * Math.signum(delta);
+			else if ( -20 <= delta && delta <= 20 )
+				inc = 5 * Math.signum(delta);
+			else if ( -50 <= delta && delta <= 50 )
+				inc = 10 * Math.signum(delta);
+			else
+				inc = 15 * Math.signum(delta);
+	
+			rquad += inc;
+			if ( rquad < 0 )
+				rquad += 360;
+			else if ( rquad >= 360 )
+				rquad -= 360;
+			rquad = Math.round(rquad);
+
+			//Inclinamos la x un poco, porque es la forma natural del
+			//teléfono en la mano
+			//                 JI         Otro
+			xrot = (toggleX?xrot_aux:-2*xrot_aux);
+			yrot = yrot_aux*2;
+//			xrot += 30.0f;
+			if ( xrot > 70.0f )
+				xrot = 70.0f;
+			else if ( xrot < -70.0f )
+				xrot = -70.0f;
+			
+			if ( yrot > 70.0f )
+				yrot = 70.0f;
+			else if ( yrot < -70.0f )
+				yrot = -70.0f;
+			
+			//Aplicamos una conversión a los grados de rotación x e y 
+			//a través de una curva exponencial para que la inclinación
+			//no sea lineal
+			//No se solarInformation sirve para algo pero me parecía interesante hacerlo ;-)
+			xrot = softenDegrees(Math.abs(xrot))*Math.signum(xrot);
+			yrot = softenDegrees(Math.abs(yrot))*Math.signum(yrot);
+
+			xrot = (toggleX?xrot-10f:xrot-20f);
+			
+//			if ( xrot > 50.0f )
+//				xrot = 50.0f;
+//			else if ( xrot < -50.0f )
+//				xrot = -50.0f;
+//			
+//			if ( yrot > 50.0f )
+//				yrot = 50.0f;
+//			else if ( yrot < -50.0f )
+//				yrot = -50.0f;
+
+//			Log.i("", xrot + " - " + yrot  );
+		}
+	}
+	
 }

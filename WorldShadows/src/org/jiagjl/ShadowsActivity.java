@@ -23,7 +23,8 @@ import android.widget.TextView;
 public class ShadowsActivity extends Activity implements DatePickerDialog.OnDateSetListener {
 	
     ShadowsView sv;
-    
+    TimeSeekBar timeSeekBar;
+
 	/**
 	 * EVENTS
 	 */
@@ -54,20 +55,22 @@ public class ShadowsActivity extends Activity implements DatePickerDialog.OnDate
         												LayoutParams.FILL_PARENT, 1));
         sv.setClickable(true);
         
-        Calendar c = sv.solarInformation.getCalendar();
         float max_time = 22f;
         float min_time = 8f;
+        Calendar c = sv.solarInformation.getCalendar();
         float start_time = c.get(Calendar.HOUR_OF_DAY) + c.get(Calendar.MINUTE) / 60.0f;
-        if ( start_time < min_time )
-        	start_time = min_time;
-        float end_time = start_time + (float)sv.solarInformation.getValue(SolarInformation.TIME_WINDOW_VALUE) / 60.0f;
-        if ( end_time > max_time ){
-        	end_time = max_time;
-        	start_time = end_time - 1.0f;
-        }
         
-        TimeSeekBar timeSeekBar = new TimeSeekBar(getApplicationContext(), min_time,
-        		max_time, 30, start_time, end_time, new TimeSeekBar.ITimeBarCallback() {
+//        if ( start_time < min_time )
+//        	start_time = min_time;
+//        float end_time = start_time + (float)sv.si.getValue(SolarInformation.TIME_WINDOW_VALUE) / 60.0f;
+//        if ( end_time > max_time ){
+//        	end_time = max_time;
+//        	start_time = end_time - 1.0f;
+//        }
+        
+        timeSeekBar = new TimeSeekBar(getApplicationContext(), min_time,
+        		max_time, 30, (int)sv.solarInformation.getValue(SolarInformation.TIME_WINDOW_VALUE) / 60,
+        		new TimeSeekBar.ITimeBarCallback() {
 					public void onEndTimeValueChange(int hour, int minute) {
 						sv.solarInformation.setEndTime(hour, minute);
 						Log.i( "SHADOWS", "End: " + hour + ":" + minute  );
@@ -80,6 +83,9 @@ public class ShadowsActivity extends Activity implements DatePickerDialog.OnDate
 				}, false);
         timeSeekBar.setLayoutParams(new LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT,
 				80, 0));
+
+        sv.solarInformation.setTimeWindow(SolarInformation.DEFAULT_TIME_WINDOW);
+        timeSeekBar.setTime( start_time );
         
         ll.addView(timeSeekBar);
         
@@ -154,10 +160,19 @@ public class ShadowsActivity extends Activity implements DatePickerDialog.OnDate
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
         case R.id.menu_now:
+        	sv.solarInformation.now();
+            Calendar c = sv.solarInformation.getCalendar();
+            float start_time = c.get(Calendar.HOUR_OF_DAY) + c.get(Calendar.MINUTE) / 60.0f;
+        	//Si no se invalida primero, no se pinta bien el nuevo valor del slider
+        	timeSeekBar.invalidate();
+        	timeSeekBar.setTime(start_time);
+    		sv.must_init_labels = true;
+        	return true;
         case R.id.menu_goto:
             showDialog(DIALOG_DATEPICKER);
         	return true;
         case R.id.menu_config:
+        	sv.toggleX = !sv.toggleX; 
         	return true;        
         }
         return false;
@@ -167,10 +182,19 @@ public class ShadowsActivity extends Activity implements DatePickerDialog.OnDate
     public boolean onContextItemSelected(MenuItem item) {
         switch (item.getItemId()) {
         case R.id.menu_now:
+        	sv.solarInformation.now(); 
+            Calendar c = sv.solarInformation.getCalendar();
+            float start_time = c.get(Calendar.HOUR_OF_DAY) + c.get(Calendar.MINUTE) / 60.0f;
+        	//Si no se invalida primero, no se pinta bien el nuevo valor del slider
+        	timeSeekBar.invalidate();
+        	timeSeekBar.setTime(start_time);
+    		sv.must_init_labels = true;
+        	return true;
         case R.id.menu_goto:
             showDialog(DIALOG_DATEPICKER);
         	return true;
         case R.id.menu_config:
+        	sv.toggleX = !sv.toggleX; 
         	return true;        
         }
         return false;
@@ -215,6 +239,7 @@ public class ShadowsActivity extends Activity implements DatePickerDialog.OnDate
 
 	public void onDateSet(DatePicker view, int year, int month, int day) {
 		sv.solarInformation.setDate(year, month, day);
+		sv.must_init_labels = true;
 		Log.i( "DatePicker", ""+year+"-"+month+"-"+day );
 	}
     

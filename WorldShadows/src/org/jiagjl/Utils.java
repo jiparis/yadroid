@@ -9,7 +9,7 @@ import android.util.Log;
 public class Utils {
 
 	
-	static public float scale( float value, float factor, float from_min, float to_min, float to_max ) {
+	static public float scaleFactor( float value, float factor, float from_min, float to_min, float to_max ) {
 		float res = factor * (value-from_min) + to_min;
 		if ( res < to_min )
 			res = to_min;
@@ -18,7 +18,16 @@ public class Utils {
 		return res;
 	}
 
-	static public float scaleFactor( float from_min, float from_max, float to_min, float to_max) {
+	static public float scale( float value, float from_min, float from_max, float to_min, float to_max ) {
+		float res = getFactor(from_min, from_max, to_min, to_max) * (value-from_min) + to_min;
+		if ( res < to_min )
+			res = to_min;
+		if ( res > to_max )
+			res = to_max;
+		return res;
+	}
+
+	static public float getFactor( float from_min, float from_max, float to_min, float to_max) {
 		return (to_max - to_min) / (from_max - from_min);
 	}
 

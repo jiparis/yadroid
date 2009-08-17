@@ -33,7 +33,7 @@ public class NumericSprite {
         mLabelMaker = new LabelMaker(true, width, height);
         mLabelMaker.initialize(gl);
         mLabelMaker.beginAdding(gl);
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < sStrike.length(); i++) {
             String digit = sStrike.substring(i, i+1);
             mLabelId[i] = mLabelMaker.add(gl, digit, paint);
             mWidth[i] = (int) Math.ceil(mLabelMaker.getWidth(i));
@@ -61,7 +61,11 @@ public class NumericSprite {
     }
 
     public void setValue(int value) {
-        mText = format(value);
+        setValue( format(value) );
+    }
+
+    public void setValue(String value) {
+        mText = value;
     }
 
     public void draw(GL10 gl, float x, float y,
@@ -69,8 +73,7 @@ public class NumericSprite {
         int length = mText.length();
         mLabelMaker.beginDrawing(gl, viewWidth, viewHeight);
         for(int i = 0; i < length; i++) {
-            char c = mText.charAt(i);
-            int digit = c - '0';
+            int digit = getPosition(mText.charAt(i));
             mLabelMaker.draw(gl, x, y, mLabelId[digit]);
             x += mWidth[digit];
         }
@@ -81,10 +84,35 @@ public class NumericSprite {
         float width = 0.0f;
         int length = mText.length();
         for(int i = 0; i < length; i++) {
-            char c = mText.charAt(i);
-            width += mWidth[c - '0'];
+            width += mWidth[getPosition(mText.charAt(i))];
         }
         return width;
+    }
+
+    private int getPosition( char c ) {
+        int digit = c - '0';
+        if ( digit < 0 || digit > 9 )
+        	switch( c ) {
+        	case '?':
+        		digit = 10;
+        		break;
+        	case '.':
+        		digit = 11;
+        		break;
+        	case '-':
+        		digit = 12;
+        		break;
+        	case '/':
+        		digit = 13;
+        		break;
+        	case ':':
+        		digit = 14;
+        		break;
+        	default:
+        		digit = 10;
+        		break;
+        	}
+        return digit;
     }
 
     private String format(int value) {
@@ -93,7 +121,7 @@ public class NumericSprite {
 
     private LabelMaker mLabelMaker;
     private String mText;
-    private int[] mWidth = new int[10];
-    private int[] mLabelId = new int[10];
-    private final static String sStrike = "0123456789";
+    private final static String sStrike = "0123456789?.-/:";
+    private int[] mWidth = new int[sStrike.length()]; 
+    private int[] mLabelId = new int[sStrike.length()];
 }
