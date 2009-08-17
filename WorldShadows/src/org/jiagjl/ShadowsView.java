@@ -277,7 +277,7 @@ public class ShadowsView extends GLBase {
 		gl.glMatrixMode(GL10.GL_MODELVIEW);		
 		//gl.glColor4f(1.0f,1.0f,1.0f, 0.0f);				// Set The Color
 		gl.glLoadIdentity();					// Reset The View, loading the identity matrix
-		gl.glTranslatef(0,0,-10); // center scene
+		gl.glTranslatef(0,0,-5); // center scene
 
 		//Pintamos los textos en la x,y de pantalla que queramos
 		//El origen de coordenadas es la esquina inferior izquierda
