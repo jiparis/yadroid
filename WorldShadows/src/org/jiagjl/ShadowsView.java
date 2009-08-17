@@ -311,7 +311,7 @@ public class ShadowsView extends GLBase {
     	float shadow = (float)solarInformation.getValue(SolarInformation.SHADOW_LENGTH_VALUE);
         if ( shadow > 20.0f )
         	mMLabels.println(gl, mLabelNA, MultiLabelMaker.HA_CENTER, MultiLabelMaker.VA_TOP );
-        else
+        else 
         	mMLabels.println(gl, (float)Math.floor(shadow*1000)/1000f, MultiLabelMaker.HA_CENTER, MultiLabelMaker.VA_TOP );
     	mMLabels.println(gl, (int)mLabelDate, MultiLabelMaker.HA_CENTER, MultiLabelMaker.VA_TOP );
     	if ( location != null )
@@ -382,6 +382,7 @@ public class ShadowsView extends GLBase {
 				//La aplicamos al modelo multiplicandola con OpenGL
 				gl.glMultMatrixf(qm, 0);
 			}
+			gl.glTranslatef(0, 0, 0.001f);
 			drawShadow(gl);
 		gl.glPopMatrix();
 	}
@@ -408,7 +409,6 @@ public class ShadowsView extends GLBase {
 
 	private void drawShadow(GL10 gl) {
 		gl.glDisable(GL10.GL_TEXTURE_2D);
-		gl.glTranslatef(0,0,0.1f);
 		gl.glShadeModel(GL10.GL_SMOOTH);
 		gl.glEnableClientState(GL10.GL_VERTEX_ARRAY);	
 		gl.glVertexPointer(2, GL10.GL_FLOAT, 0, shadowsBuff);
@@ -500,7 +500,7 @@ public class ShadowsView extends GLBase {
 		return (float)Math.exp(value);
 	}
 
-	public boolean toggleX = false;
+	public boolean toggleX = true;
 	
 	private void softAngles() {
 		synchronized (this) {
