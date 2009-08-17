@@ -672,28 +672,15 @@ public class SolarInformation {
                 
         return stripShadow;
     }	
-	synchronized public float[] calculateRectangleShadow(Calendar instant){
+	synchronized public float[] calculateRectangleShadow(Calendar instant) {
         /*
          * La franja de sombra será descrita por cuatro puntos, el origen, la sombra en el instante pasado como parámetro
          *  y dos puntos que representan la sombra 5 minutos antes y después del instante pasado como parámetro.
          */
-        float[] stripShadow=new float[8];
+        float xy[] =calculatePointShadow(instant);
+        float[] stripShadow=new float[12];
         stripShadow[0]=stripShadow[1]=0f;
         
-
-        Calendar formerInstant=new GregorianCalendar(instant.getTimeZone());
-        formerInstant.set(instant.get(Calendar.YEAR), instant.get(Calendar.MONTH),
-                instant.get(Calendar.DAY_OF_MONTH),
-                instant.get(Calendar.HOUR_OF_DAY) , 
-                instant.get(Calendar.MINUTE)-20);
-        
-        Calendar laterInstant=new GregorianCalendar(instant.getTimeZone());
-        laterInstant.set(instant.get(Calendar.YEAR), instant.get(Calendar.MONTH),
-                instant.get(Calendar.DAY_OF_MONTH),
-                instant.get(Calendar.HOUR_OF_DAY) , 
-                instant.get(Calendar.MINUTE)+20);
-        
-        float shadowPoint[]=calculatePointShadow(formerInstant);
         //SUNSET:Actualizo la hora de la puesta de SOL
         TimeZone tz=instant.getTimeZone();        
         double time = this.getValue(SUNSET_VALUE);
@@ -711,41 +698,59 @@ public class SolarInformation {
                 instant.get(Calendar.DAY_OF_MONTH),
                 t, m+5);
         sunriseDate.setTimeZone(tz);
-
         if(instant.before(sunriseDate)||instant.after(sunsetDate)){
             return null;
         }
-        if(formerInstant.before(sunriseDate)){
-            formerInstant.set(Calendar.HOUR_OF_DAY, sunriseDate.get(Calendar.HOUR_OF_DAY));
-            formerInstant.set(Calendar.MINUTE, sunriseDate.get(Calendar.MINUTE)+5);
-            shadowPoint=calculatePointShadow(formerInstant);
-        }
-        
-        if(laterInstant.after(sunsetDate)){
-            laterInstant.set(Calendar.HOUR_OF_DAY, sunsetDate.get(Calendar.HOUR_OF_DAY));
-            laterInstant.set(Calendar.MINUTE, sunsetDate.get(Calendar.MINUTE)-5);
-            
-        }
-        calculatePointShadow(instant);
-        double azimut=getValue(AZIMUT_VALUE);
-        stripShadow[0]=(float)(Math.cos(azimut*Math.PI/180)*0.125f);
-        stripShadow[1]=-(float)(Math.sin(azimut*Math.PI/180)*0.125f);
-
-        
-        //Coordenadas del punto inicial
-        stripShadow[2]=-stripShadow[0];
-        stripShadow[3]=-stripShadow[1];
-
-        //Coordenadas del punto actual
-        shadowPoint=calculatePointShadow(formerInstant);
-        stripShadow[4]=shadowPoint[0];
-        stripShadow[5]=shadowPoint[1];
-
-        //Coordenadas del punto final
-        shadowPoint=calculatePointShadow(laterInstant);
-        stripShadow[6]=shadowPoint[0];
-        stripShadow[7]=shadowPoint[1];
-        
+       float offset=0.15f;
+       if(xy[0]>0 && xy[1]>0){
+    	   stripShadow[2]=offset*(float)Math.cos(Math.PI/180*45);
+    	   stripShadow[3]=-offset*(float)Math.cos(Math.PI/180*45);
+    	   stripShadow[4]=xy[0]+offset*(float)Math.cos(Math.PI/180*45);
+    	   stripShadow[5]=xy[1]-offset*(float)Math.cos(Math.PI/180*45);
+    	   stripShadow[6]=xy[0];
+    	   stripShadow[7]=xy[1];
+    	   stripShadow[8]=xy[0]-offset*(float)Math.cos(Math.PI/180*45);
+    	   stripShadow[9]=xy[1]+offset*(float)Math.cos(Math.PI/180*45);
+    	   stripShadow[10]=-offset*(float)Math.cos(Math.PI/180*45);
+    	   stripShadow[11]=offset*(float)Math.cos(Math.PI/180*45);
+   	   
+       }else if(xy[0]>0 && xy[1]<0){
+    	   stripShadow[2]=offset*(float)Math.cos(Math.PI/180*45);
+    	   stripShadow[3]=offset*(float)Math.cos(Math.PI/180*45);
+    	   stripShadow[4]=xy[0]+offset*(float)Math.cos(Math.PI/180*45);
+    	   stripShadow[5]=xy[1]+offset*(float)Math.cos(Math.PI/180*45);
+    	   stripShadow[6]=xy[0];
+    	   stripShadow[7]=xy[1];
+    	   stripShadow[8]=xy[0]-offset*(float)Math.cos(Math.PI/180*45);
+    	   stripShadow[9]=xy[1]-offset*(float)Math.cos(Math.PI/180*45);
+    	   stripShadow[10]=-offset*(float)Math.cos(Math.PI/180*45);
+    	   stripShadow[11]=-offset*(float)Math.cos(Math.PI/180*45);
+    	   
+       }else if(xy[0]<0 && xy[1]<0){
+    	   stripShadow[2]=offset*(float)Math.cos(Math.PI/180*45);
+    	   stripShadow[3]=-offset*(float)Math.cos(Math.PI/180*45);
+    	   stripShadow[4]=xy[0]+offset*(float)Math.cos(Math.PI/180*45);
+    	   stripShadow[5]=xy[1]+offset*(float)Math.cos(Math.PI/180*45);
+    	   stripShadow[6]=xy[0];
+    	   stripShadow[7]=xy[1];
+    	   stripShadow[8]=xy[0]+offset*(float)Math.cos(Math.PI/180*45);
+    	   stripShadow[9]=xy[1]-offset*(float)Math.cos(Math.PI/180*45);
+    	   stripShadow[10]=offset*(float)Math.cos(Math.PI/180*45);
+    	   stripShadow[11]=-offset*(float)Math.cos(Math.PI/180*45);
+    	   
+       }else if(xy[0]<0 && xy[1]>0){
+    	   stripShadow[2]=offset*(float)Math.cos(Math.PI/180*45);
+    	   stripShadow[3]=offset*(float)Math.cos(Math.PI/180*45);
+    	   stripShadow[4]=xy[0]+offset*(float)Math.cos(Math.PI/180*45);
+    	   stripShadow[5]=xy[1]+offset*(float)Math.cos(Math.PI/180*45);
+    	   stripShadow[6]=xy[0];
+    	   stripShadow[7]=xy[1];
+    	   stripShadow[8]=xy[0]-offset*(float)Math.cos(Math.PI/180*45);
+    	   stripShadow[9]=xy[1]-offset*(float)Math.cos(Math.PI/180*45);
+    	   stripShadow[10]=-offset*(float)Math.cos(Math.PI/180*45);
+    	   stripShadow[11]=-offset*(float)Math.cos(Math.PI/180*45);
+    	   
+       }
                 
         return stripShadow;
     }		
