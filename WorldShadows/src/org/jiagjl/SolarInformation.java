@@ -678,8 +678,8 @@ public class SolarInformation {
          *  y dos puntos que representan la sombra 5 minutos antes y después del instante pasado como parámetro.
          */
         float xy[] =calculatePointShadow(instant);
-        float[] stripShadow=new float[12];
-        stripShadow[0]=stripShadow[1]=0f;
+        float[] stripShadow=new float[10];
+        double azimut=getValue(AZIMUT_VALUE);
         
         //SUNSET:Actualizo la hora de la puesta de SOL
         TimeZone tz=instant.getTimeZone();        
@@ -699,57 +699,69 @@ public class SolarInformation {
                 t, m+5);
         sunriseDate.setTimeZone(tz);
         if(instant.before(sunriseDate)||instant.after(sunsetDate)){
-            return null;
+            return new float[]{0f,0f};
         }
-       float offset=0.15f;
+       float offset=0.125f;
        if(xy[0]>0 && xy[1]>0){
-    	   stripShadow[2]=offset*(float)Math.cos(Math.PI/180*45);
-    	   stripShadow[3]=-offset*(float)Math.cos(Math.PI/180*45);
-    	   stripShadow[4]=xy[0]+offset*(float)Math.cos(Math.PI/180*45);
-    	   stripShadow[5]=xy[1]-offset*(float)Math.cos(Math.PI/180*45);
-    	   stripShadow[6]=xy[0];
-    	   stripShadow[7]=xy[1];
-    	   stripShadow[8]=xy[0]-offset*(float)Math.cos(Math.PI/180*45);
-    	   stripShadow[9]=xy[1]+offset*(float)Math.cos(Math.PI/180*45);
-    	   stripShadow[10]=-offset*(float)Math.cos(Math.PI/180*45);
-    	   stripShadow[11]=offset*(float)Math.cos(Math.PI/180*45);
-   	   
+    	   stripShadow[0]=-offset;
+    	   stripShadow[1]=offset;
+    	   
+    	   stripShadow[2]=offset;
+    	   stripShadow[3]=-offset;
+    	   
+    	   stripShadow[4]=xy[0]+offset;
+    	   stripShadow[5]=xy[1]-offset;
+    	   
+    	   stripShadow[6]=xy[0]+offset;
+    	   stripShadow[7]=xy[1]+offset;
+    	   
+    	   stripShadow[8]=xy[0]-offset;
+    	   stripShadow[9]=xy[1]+offset;   	   
        }else if(xy[0]>0 && xy[1]<0){
-    	   stripShadow[2]=offset*(float)Math.cos(Math.PI/180*45);
-    	   stripShadow[3]=offset*(float)Math.cos(Math.PI/180*45);
-    	   stripShadow[4]=xy[0]+offset*(float)Math.cos(Math.PI/180*45);
-    	   stripShadow[5]=xy[1]+offset*(float)Math.cos(Math.PI/180*45);
-    	   stripShadow[6]=xy[0];
-    	   stripShadow[7]=xy[1];
-    	   stripShadow[8]=xy[0]-offset*(float)Math.cos(Math.PI/180*45);
-    	   stripShadow[9]=xy[1]-offset*(float)Math.cos(Math.PI/180*45);
-    	   stripShadow[10]=-offset*(float)Math.cos(Math.PI/180*45);
-    	   stripShadow[11]=-offset*(float)Math.cos(Math.PI/180*45);
+    	   stripShadow[0]=offset;
+    	   stripShadow[1]=offset;
     	   
+    	   stripShadow[2]=-offset;
+    	   stripShadow[3]=-offset;
+    	   
+    	   stripShadow[4]=xy[0]-offset;
+    	   stripShadow[5]=xy[1]-offset;
+    	   
+    	   stripShadow[6]=xy[0]+offset;
+    	   stripShadow[7]=xy[1]-offset;
+    	   
+    	   stripShadow[8]=xy[0]+offset;
+    	   stripShadow[9]=xy[1]+offset;
        }else if(xy[0]<0 && xy[1]<0){
-    	   stripShadow[2]=offset*(float)Math.cos(Math.PI/180*45);
-    	   stripShadow[3]=-offset*(float)Math.cos(Math.PI/180*45);
-    	   stripShadow[4]=xy[0]+offset*(float)Math.cos(Math.PI/180*45);
-    	   stripShadow[5]=xy[1]+offset*(float)Math.cos(Math.PI/180*45);
-    	   stripShadow[6]=xy[0];
-    	   stripShadow[7]=xy[1];
-    	   stripShadow[8]=xy[0]+offset*(float)Math.cos(Math.PI/180*45);
-    	   stripShadow[9]=xy[1]-offset*(float)Math.cos(Math.PI/180*45);
-    	   stripShadow[10]=offset*(float)Math.cos(Math.PI/180*45);
-    	   stripShadow[11]=-offset*(float)Math.cos(Math.PI/180*45);
+    	   stripShadow[0]=offset;
+    	   stripShadow[1]=-offset;
     	   
+    	   stripShadow[2]=-offset;
+    	   stripShadow[3]=offset;
+    	   
+    	   stripShadow[4]=xy[0]-offset;
+    	   stripShadow[5]=xy[1]+offset;
+    	   
+    	   stripShadow[6]=xy[0]-offset;
+    	   stripShadow[7]=xy[1]-offset;
+    	   
+    	   stripShadow[8]=xy[0]+offset;
+    	   stripShadow[9]=xy[1]-offset;
        }else if(xy[0]<0 && xy[1]>0){
-    	   stripShadow[2]=offset*(float)Math.cos(Math.PI/180*45);
-    	   stripShadow[3]=offset*(float)Math.cos(Math.PI/180*45);
-    	   stripShadow[4]=xy[0]+offset*(float)Math.cos(Math.PI/180*45);
-    	   stripShadow[5]=xy[1]+offset*(float)Math.cos(Math.PI/180*45);
-    	   stripShadow[6]=xy[0];
-    	   stripShadow[7]=xy[1];
-    	   stripShadow[8]=xy[0]-offset*(float)Math.cos(Math.PI/180*45);
-    	   stripShadow[9]=xy[1]-offset*(float)Math.cos(Math.PI/180*45);
-    	   stripShadow[10]=-offset*(float)Math.cos(Math.PI/180*45);
-    	   stripShadow[11]=-offset*(float)Math.cos(Math.PI/180*45);
+    	   stripShadow[0]=-offset;
+    	   stripShadow[1]=-offset;
     	   
+    	   stripShadow[2]=offset;
+    	   stripShadow[3]=offset;
+    	   
+    	   stripShadow[4]=xy[0]+offset;
+    	   stripShadow[5]=xy[1]+offset;
+    	   
+    	   stripShadow[6]=xy[0]-offset;
+    	   stripShadow[7]=xy[1]+offset;
+    	   
+    	   stripShadow[8]=xy[0]-offset;
+    	   stripShadow[9]=xy[1]-offset;
        }
                 
         return stripShadow;
