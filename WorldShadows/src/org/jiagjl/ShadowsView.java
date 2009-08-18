@@ -5,7 +5,6 @@ import java.nio.FloatBuffer;
 import java.text.DateFormat;
 import java.util.List;
 import java.util.Locale;
-import java.util.GregorianCalendar;
 import java.util.TimeZone;
 
 import javax.microedition.khronos.opengles.GL10;
@@ -30,12 +29,9 @@ import android.util.Log;
 
 public class ShadowsView extends GLBase {
 
-	/*
-	 * agalan: He cambiado el nombre de la variable de 'solarInformation' a 'solarInformation'.
-	 */
 	SolarInformation solarInformation;
 	TimeZone tz=TimeZone.getTimeZone("GMT+2");
-	//int time_window = 4*60; //En minutos
+
 	float[] origen=new float[]{0f,0f};
 	
 	float[] quad = new float[]{
@@ -67,19 +63,6 @@ public class ShadowsView extends GLBase {
 	FloatBuffer origenBuff;
 
 	
-/*	float[] linea1 = new float[] { 0.0f, 0.0f, 0.01f, 1.3f, 0.0f, 0.01f, };
-	float[] linea2 = new float[] { 0.0f, 0.0f, 0.01f, 0.0f, 1.3f, 0.01f, };
-	float[] linea3 = new float[] { 0.0f, 0.0f, 0.01f, 0.0f, 0.0f, 1.3f, };
-	
-	FloatBuffer linea1Buff;
-	FloatBuffer linea2Buff;
-	FloatBuffer linea3Buff;
-
-	float[] carretera = new float[] { -1.4f, -10.0f, -0.0f, -1.4f, 10.0f, 0.0f,
-									   1.4f, -10.0f, -0.0f,  1.4f, 10.0f, 0.0f,};
-
-	FloatBuffer carreteraBuff;
-*/	
 	float rquad = 0f;     //Rotación que se ha aplicado a la Z en el último drawFrame 
     float rquad_obj = 0f; //Rotación objetivo a alcanzar en la Z en sucesivos drawFrame
 	float rquad_aux;      //Valor Z actual del sensor de la brújula 
@@ -124,24 +107,10 @@ public class ShadowsView extends GLBase {
 				if (!paused){
 					//Azimuth - z
 					rquad_aux = values[0];
-					
 					//Pitch - x
 					xrot_aux = values[1];
 					//Roll - y
 					yrot_aux = values[2];	
-					
-					//Inclinamos la x un poco, porque es la forma natural del
-					//teléfono en la mano
-//					xrot += 15.0f;
-//					if ( xrot > 90.0f )
-//						xrot = 90.0f;
-					
-					//Aplicamos una conversión a los grados de rotación x e y 
-					//a través de una curva exponencial para que la inclinación
-					//no sea lineal
-					//No se solarInformation sirve para algo pero me parecía interesante hacerlo ;-)
-//					xrot = softenDegrees(Math.abs(xrot))*Math.signum(xrot);
-//					yrot = softenDegrees(Math.abs(yrot))*Math.signum(yrot);
 				}
 			}
 	    }
@@ -158,19 +127,9 @@ public class ShadowsView extends GLBase {
 		world = BitmapFactory.decodeResource(c.getResources(), R.drawable.grass);
 		context = c;        
 
-/*		linea1Buff = makeFloatBuffer(linea1);
-		linea2Buff = makeFloatBuffer(linea2);
-		linea3Buff = makeFloatBuffer(linea3);
-		carreteraBuff = makeFloatBuffer(carretera);
-*/		
 		origenBuff=makeFloatBuffer(origen);
 
 		solarInformation=new SolarInformation();
-
-		//GregorianCalendar cal=new GregorianCalendar(2009,10,11,9,0);		
-//		GregorianCalendar cal=new GregorianCalendar(tz);
-		//cal.set(2009,0,13,7,0);
-//		float[] sombra=solarInformation.calculateShadowRange(30,cal);
 
 		findLocation();
 	}
@@ -187,8 +146,10 @@ public class ShadowsView extends GLBase {
 				location = a.getCountryName();
 			else
 				location += ", " + a.getCountryName();
-			if ( location != null )
+			if ( location != null ) {
+				Log.i("findLocation", location);
 				must_init_labels = true;
+			}
 		} catch (IOException e) {
 			Log.e("Location", "Error", e);
 		}
@@ -282,7 +243,11 @@ public class ShadowsView extends GLBase {
 	long time = System.currentTimeMillis();
 	
     @Override
-	protected void drawFrame(GL10 gl) {
+	synchronized protected void drawFrame(GL10 gl) {
+		if ( location == null && frames++ > 100 ) {
+			findLocation();
+			frames = 0;
+		}
 		initLabels(gl);
 		if (isPressed() && canPress){			
 			paused = !paused;
@@ -290,11 +255,6 @@ public class ShadowsView extends GLBase {
 		}		
 		if (!isPressed())
 			canPress = true;
-		
-		if ( location == null && frames++ > 100 ) {
-			findLocation();
-			frames = 0;
-		}
 		
 		softAngles();
 
@@ -312,7 +272,7 @@ public class ShadowsView extends GLBase {
     	float shadow = (float)solarInformation.getValue(SolarInformation.SHADOW_LENGTH_VALUE);
         if ( shadow > 20.0f )
         	mMLabels.println(gl, mLabelNA, MultiLabelMaker.HA_CENTER, MultiLabelMaker.VA_TOP );
-        else 
+        else  
         	mMLabels.println(gl, (float)Math.floor(shadow*1000)/1000f, MultiLabelMaker.HA_CENTER, MultiLabelMaker.VA_TOP );
     	mMLabels.println(gl, (int)mLabelDate, MultiLabelMaker.HA_CENTER, MultiLabelMaker.VA_TOP );
     	if ( location != null )
@@ -562,16 +522,6 @@ public class ShadowsView extends GLBase {
 
 			xrot = (toggleX?xrot-10f:xrot-20f);
 			
-//			if ( xrot > 50.0f )
-//				xrot = 50.0f;
-//			else if ( xrot < -50.0f )
-//				xrot = -50.0f;
-//			
-//			if ( yrot > 50.0f )
-//				yrot = 50.0f;
-//			else if ( yrot < -50.0f )
-//				yrot = -50.0f;
-
 //			Log.i("", xrot + " - " + yrot  );
 		}
 	}
