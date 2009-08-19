@@ -658,20 +658,14 @@ public class SolarInformation {
          * La franja de sombra será descrita por cuatro puntos, el origen, la sombra en el instante pasado como parámetro
          *  y dos puntos que representan la sombra 5 minutos antes y después del instante pasado como parámetro.
          */
- 	  System.out.println("ROTACIÓN:"+rotation);
-		float offset=0.13f;
-//		float[] punto1=this.transformCoordinatePoint(new float[]{offset,offset},rotation);
-//		float[] punto2=this.transformCoordinatePoint(new float[]{offset,-offset},rotation);
-//		float[] punto3=this.transformCoordinatePoint(new float[]{-offset,-offset},rotation);
-//		float[] punto4=this.transformCoordinatePoint(new float[]{-offset,offset},rotation);
+		float offset=0.125f;
 
 		float[] punto1=new float[]{offset,offset};
 		float[] punto2=new float[]{offset,-offset};
 		float[] punto3=new float[]{-offset,-offset};
 		float[] punto4=new float[]{-offset,offset};
 
-		float prerotate[] =calculatePointShadow(instant);
-		float xy[] =this.transformCoordinatePoint(prerotate, rotation);
+		float xy[] =calculatePointShadow(instant);
 		float[] stripShadow=new float[12];
 		//SUNSET:Actualizo la hora de la puesta de SOL
 		TimeZone tz=instant.getTimeZone();        
@@ -693,7 +687,7 @@ public class SolarInformation {
 		if(instant.before(sunriseDate)||instant.after(sunsetDate)){
 			return new float[]{0f,0f};
 		}
-		if(prerotate[0]>0 && prerotate[1]>0){
+		if(xy[0]>0 && xy[1]>0){
 			stripShadow[0]=punto2[0];
 			stripShadow[1]=punto2[1];
 
@@ -703,16 +697,16 @@ public class SolarInformation {
 			stripShadow[4]=punto4[0];
 			stripShadow[5]=punto4[1];
 
-			stripShadow[6]=prerotate[0]+punto4[0];
-			stripShadow[7]=prerotate[1]+punto4[1];
+			stripShadow[6]=xy[0]+punto4[0];
+			stripShadow[7]=xy[1]+punto4[1];
 
-			stripShadow[8]=prerotate[0]+punto1[0];
-			stripShadow[9]=prerotate[1]+punto1[1];
+			stripShadow[8]=xy[0]+punto1[0];
+			stripShadow[9]=xy[1]+punto1[1];
 
-			stripShadow[10]=prerotate[0]+punto2[0];
-			stripShadow[11]=prerotate[1]+punto2[1];  
+			stripShadow[10]=xy[0]+punto2[0];
+			stripShadow[11]=xy[1]+punto2[1];  
 
-		}else if(prerotate[0]>0 && prerotate[1]<0){
+		}else if(xy[0]>0 && xy[1]<0){
 			stripShadow[0]=punto1[0];
 			stripShadow[1]=punto1[1];
 
@@ -722,16 +716,16 @@ public class SolarInformation {
 			stripShadow[4]=punto3[0];
 			stripShadow[5]=punto3[1];
 
-			stripShadow[6]=prerotate[0]+punto3[0];
-			stripShadow[7]=prerotate[1]+punto3[1];
+			stripShadow[6]=xy[0]+punto3[0];
+			stripShadow[7]=xy[1]+punto3[1];
 
-			stripShadow[8]=prerotate[0]+punto2[0];
-			stripShadow[9]=prerotate[1]+punto2[1];
+			stripShadow[8]=xy[0]+punto2[0];
+			stripShadow[9]=xy[1]+punto2[1];
 
-			stripShadow[10]=prerotate[0]+punto1[0];
-			stripShadow[11]=prerotate[1]+punto1[1];
+			stripShadow[10]=xy[0]+punto1[0];
+			stripShadow[11]=xy[1]+punto1[1];
 
-		}else if(prerotate[0]<0 && prerotate[1]<0){
+		}else if(xy[0]<0 && xy[1]<0){
 			stripShadow[0]=punto2[0];
 			stripShadow[1]=punto2[1];
 
@@ -741,16 +735,16 @@ public class SolarInformation {
 			stripShadow[4]=punto4[0];
 			stripShadow[5]=punto4[1];
 
-			stripShadow[6]=prerotate[0]+punto4[0];
-			stripShadow[7]=prerotate[1]+punto4[1];
+			stripShadow[6]=xy[0]+punto4[0];
+			stripShadow[7]=xy[1]+punto4[1];
 
-			stripShadow[8]=prerotate[0]+punto3[0];
-			stripShadow[9]=prerotate[1]+punto3[1];
+			stripShadow[8]=xy[0]+punto3[0];
+			stripShadow[9]=xy[1]+punto3[1];
 
-			stripShadow[10]=prerotate[0]+punto2[0];
-			stripShadow[11]=prerotate[1]+punto2[1];
+			stripShadow[10]=xy[0]+punto2[0];
+			stripShadow[11]=xy[1]+punto2[1];
 
-		}else if(prerotate[0]<0 && prerotate[1]>0){
+		}else if(xy[0]<0 && xy[1]>0){
 			stripShadow[0]=punto1[0];
 			stripShadow[1]=punto1[1];
 
@@ -760,14 +754,14 @@ public class SolarInformation {
 			stripShadow[4]=punto3[0];
 			stripShadow[5]=punto3[1];
 
-			stripShadow[6]=prerotate[0]+punto3[0];
-			stripShadow[7]=prerotate[1]+punto3[1];
+			stripShadow[6]=xy[0]+punto3[0];
+			stripShadow[7]=xy[1]+punto3[1];
 
-			stripShadow[8]=prerotate[0]+punto4[0];
-			stripShadow[9]=prerotate[1]+punto4[1];
+			stripShadow[8]=xy[0]+punto4[0];
+			stripShadow[9]=xy[1]+punto4[1];
 
-			stripShadow[10]=prerotate[0]+punto1[0];
-			stripShadow[11]=prerotate[1]+punto1[1];
+			stripShadow[10]=xy[0]+punto1[0];
+			stripShadow[11]=xy[1]+punto1[1];
 	}
 
 		return stripShadow;
@@ -776,13 +770,6 @@ public class SolarInformation {
 	
 	
 	
-	private float[] transformCoordinatePoint(float[] point,float angle){
-		System.out.println("angle:"+angle);
-		float[] transformPoint = new float[2];
-		transformPoint[0]=point[0]*(float)Math.cos(angle)+point[1]*(float)Math.sin(angle);
-		transformPoint[1]=-point[0]*(float)Math.sin(angle)+point[1]*(float)Math.cos(angle);
-		return transformPoint;
-	}
 
 	static public void main( String[] argv ) {
 		SolarInformation solin = new SolarInformation();
