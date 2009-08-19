@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    
+    <string name="app_name">aShadow Finder</string>
+    <string name="app_title">Shadow Finder</string>
+    <string name="menu_now">Ahora</string>
+	<string name="menu_goto">Cambiar fecha</string>
+	<string name="menu_config">Preferencias</string>
+	<string name="menu_help">Ayuda</string>
+	<string name="txt_out_of_range">Fuera de rango</string>
+	<string name="txt_shadow_length">"Longitud de sombra: "</string>
+	<string name="txt_sunrise">"Amanecer "</string>
+	<string name="txt_sunset">"Anochecer "</string>
+	<string name="txt_day_selection">Seleccione la fecha</string>
+	<string name="txt_rotation">Rotación en pausa</string>
+	<string name="txt_rotation_0">Sin rotación</string>
+	<string name="help_content">
+	\n
+	Esta aplicación muestra la sombra que genera el sol sobre un objeto determinado, para un día y una hora concreta.\n
+	\n
+	Puede utilizar la barra de desplazamiento para establecer la hora del día seleccionado (hoy por defecto) y ver cuál sería la sombra proyectada.\n
+	\n
+	Si la brújula no funciona correctamente o es inestable, oriente el teléfono de forma manual: seleccione el día y la hora actual, pulse en la pantalla (una o dos veces) para pausar la rotación de la escena, y mueva el teléfono móvil hasta que la sombra que ve en un objeto real tenga la misma dirección que la ve en la pantalla. Ahora mueva la barra de desplazamiento para ver la evolución de la sombra a lo largo del día.\n
+	\n
+	La conexión a internet sólo es necesaria para obtener la información sobre la localidad en la que se encuentra, y no afecta al correcto funcionamiento de los cálculos de la sobre.  
+	\n
+<!--	La longitud y la latitud no han de ser exactas para obtener un sombra aproximada, por lo que para su obtención se utiliza el método de menor precisión de los disponibles. 
+-->	\n
+	</string>
+</resources>
