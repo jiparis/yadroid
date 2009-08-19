@@ -213,7 +213,7 @@ public class ShadowsView extends GLBase {
         return mgl;
 	}
 
-	boolean must_init_labels = false;
+	boolean must_init_labels = true;
 	
 	protected void initLabels(GL10 gl){
 		if ( !must_init_labels )
