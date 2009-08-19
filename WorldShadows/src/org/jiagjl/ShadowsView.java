@@ -23,6 +23,8 @@ import android.hardware.SensorListener;
 import android.hardware.SensorManager;
 import android.location.Address;
 import android.location.Geocoder;
+import android.location.Location;
+import android.location.LocationManager;
 import android.util.AttributeSet;
 import android.util.Log;
 
@@ -137,7 +139,21 @@ public class ShadowsView extends GLBase {
 
 		solarInformation=new SolarInformation();
 
-		findLocation();
+    	LocationManager loc_mgr = (LocationManager)context.getSystemService(Context.LOCATION_SERVICE);
+    	Location loc = null;
+    	if ( loc_mgr.isProviderEnabled(LocationManager.NETWORK_PROVIDER) ) {
+        	loc = loc_mgr.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+    	} 
+//    	else 
+//    	if ( loc_mgr.isProviderEnabled(LocationManager.GPS_PROVIDER) ) {
+//        	loc = loc_mgr.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+//        }
+    	if ( loc != null ) {
+	    	solarInformation.setPosition(loc.getLatitude(), loc.getLongitude());
+	    	Log.i("LOCATION", loc.getLatitude() + " - " + loc.getLongitude() );
+    	}
+
+    	findLocation();
 	}
 
 	public void findLocation() {
