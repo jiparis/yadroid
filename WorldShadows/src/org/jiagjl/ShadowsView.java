@@ -5,7 +5,6 @@ import java.nio.FloatBuffer;
 import java.text.DateFormat;
 import java.util.List;
 import java.util.Locale;
-import java.util.TimeZone;
 
 import javax.microedition.khronos.opengles.GL10;
 
@@ -30,7 +29,6 @@ import android.util.Log;
 public class ShadowsView extends GLBase {
 
 	SolarInformation solarInformation;
-	TimeZone tz=TimeZone.getTimeZone("GMT+2");
 
 	float[] origen=new float[]{0f,0f};
 	
@@ -91,10 +89,10 @@ public class ShadowsView extends GLBase {
 	NumericSprite mNumericSprite;
 	Paint mLabelPaint;
 	int mLabelNA;
-	int mLabelNE, mLabelSE, mLabelNW, mLabelSW, mLabelDot, mLabellocation, mLabelDate;
+	int mLabelNE, mLabelSE, mLabelNW, mLabelSW, mLabelDot, mLabellocation, mLabelDate, mLabelRotation, mLabelShadow;
 	float[] qm = new float[16];
 	
-	boolean paused = false;
+	int paused = 0;
 	boolean canPress = false;
 	
 	SensorListener sl = new SensorListener(){
@@ -104,14 +102,22 @@ public class ShadowsView extends GLBase {
 
 		public void onSensorChanged(int sensor, float[] values) {
 			synchronized (ShadowsView.this) {
-				if (!paused){
+				if (paused == 0){
 					//Azimuth - z
 					rquad_aux = values[0];
 					//Pitch - x
 					xrot_aux = values[1];
 					//Roll - y
-					yrot_aux = values[2];	
+					yrot_aux = values[2];
+				} else if (paused == 2){
+					//Azimuth - z
+					rquad_aux = 0;
+					//Pitch - x
+					xrot_aux = 0;
+					//Roll - y
+					yrot_aux = 0;	
 				}
+
 			}
 	    }
 	};
@@ -230,10 +236,18 @@ public class ShadowsView extends GLBase {
 			mMLabels = new MultiLabelMaker(true, mLabelPaint);
 		}        
         String date = DateFormat.getDateInstance().format(solarInformation.getCalendar().getTime());
-        mMLabels.add(new String[] { date, (location==null?"":location), "Fuera de rango"  });
+        mMLabels.add(new String[] { 
+        		date, 
+        		(location == null ? "" : location),
+				(String) context.getText(R.string.txt_out_of_range),
+				(String) context.getText(R.string.txt_rotation),
+				(String) context.getText(R.string.txt_rotation_0),
+				(String) context.getText(R.string.txt_shadow_length) });
         mLabelDate = 0;
         mLabellocation = 1;
         mLabelNA = 2;
+        mLabelRotation = 3;
+        mLabelShadow = 5;
 
     	must_init_labels = false;
 	}
@@ -241,6 +255,7 @@ public class ShadowsView extends GLBase {
 	
 	int frames = 0;
 	long time = System.currentTimeMillis();
+	long paused_time = System.currentTimeMillis();
 	
     @Override
 	synchronized protected void drawFrame(GL10 gl) {
@@ -250,12 +265,14 @@ public class ShadowsView extends GLBase {
 		}
 		initLabels(gl);
 		if (isPressed() && canPress){			
-			paused = !paused;
+			paused = (paused+1) % 3;
+			if ( paused == 1)
+				paused_time = System.currentTimeMillis();
 			canPress = false;
 		}		
 		if (!isPressed())
 			canPress = true;
-		
+
 		softAngles();
 
 		//float[] sombra=solarInformation.calculateStripShadow(solarInformation.getCalendar());
@@ -270,6 +287,7 @@ public class ShadowsView extends GLBase {
 		gl.glTranslatef(0,0,-5); // center scene
 
     	float shadow = (float)solarInformation.getValue(SolarInformation.SHADOW_LENGTH_VALUE);
+    	mMLabels.print(gl, mLabelShadow, MultiLabelMaker.HA_CENTER, MultiLabelMaker.VA_TOP );
         if ( shadow > 20.0f )
         	mMLabels.println(gl, mLabelNA, MultiLabelMaker.HA_CENTER, MultiLabelMaker.VA_TOP );
         else  
@@ -277,6 +295,16 @@ public class ShadowsView extends GLBase {
     	mMLabels.println(gl, (int)mLabelDate, MultiLabelMaker.HA_CENTER, MultiLabelMaker.VA_TOP );
     	if ( location != null )
         	mMLabels.println(gl, mLabellocation, MultiLabelMaker.HA_CENTER, MultiLabelMaker.VA_TOP );
+
+    	if ( paused != 0 ) {
+    		long delta = (System.currentTimeMillis() - paused_time);
+    		long mod = delta % 1000;
+    		if ( /*delta > 10000 ||*/ mod < 500 ) {
+//            	mMLabels.println(gl, "", MultiLabelMaker.HA_CENTER, MultiLabelMaker.VA_TOP );
+    			mMLabels.println(gl, mLabelRotation+paused-1, MultiLabelMaker.HA_CENTER, MultiLabelMaker.VA_TOP );
+    		}
+    	}
+
         mMLabels.flush(gl, mWidth, mHeight);
         
         gl.glPushMatrix();
@@ -520,7 +548,8 @@ public class ShadowsView extends GLBase {
 			xrot = softenDegrees(Math.abs(xrot))*Math.signum(xrot);
 			yrot = softenDegrees(Math.abs(yrot))*Math.signum(yrot);
 
-			xrot = (toggleX?xrot-10f:xrot-20f);
+			if ( paused != 2 )
+				xrot = (toggleX?xrot-10f:xrot-20f);
 			
 //			Log.i("", xrot + " - " + yrot  );
 		}
