@@ -9,7 +9,6 @@ import android.app.Activity;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -24,12 +23,13 @@ public class ShadowsActivity extends Activity implements DatePickerDialog.OnDate
     ShadowsView sv;
     View timeSeekBar;
     boolean mSingle = true;
-
+    
 	/** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setTitle(R.string.app_name);
+//        showDialog(PROGRESS_DIALOG);
         
         LinearLayout ll = new LinearLayout(getApplicationContext());
         ll.setOrientation(LinearLayout.VERTICAL);
@@ -65,7 +65,6 @@ public class ShadowsActivity extends Activity implements DatePickerDialog.OnDate
 	        tsb.setProgressDrawable(getResources().getDrawable(R.xml.seekbar));
 	        tsb.setPadding(2, 25, 2, 20);
 	        setTimeLimits();
-//	        tsb.setTimeMarks(new float[] { sunrise, sunset }, new String[] { "Sunrise", "Sunset" });
         } else {
 	        timeSeekBar = new TimeSeekBar(getApplicationContext(), min_time,
 	        		max_time, 30, (int)sv.solarInformation.getValue(SolarInformation.TIME_WINDOW_VALUE) / 60,
@@ -118,10 +117,10 @@ public class ShadowsActivity extends Activity implements DatePickerDialog.OnDate
 	        SingleTimeSeekBar tsb = (SingleTimeSeekBar)timeSeekBar;
 	        float time = tsb.getTime();
 	        tsb.setTimeLimits(min_time, max_time);
-	        tsb.setTimeMarks(new float[] { sunrise, sunset }, new String[] { "Sunrise " + timeToString(sunrise), "Sunset "+ timeToString(sunset) });
+	        tsb.setTimeMarks(new float[] { sunrise, sunset }, new String[] { getText(R.string.txt_sunrise) + timeToString(sunrise), getText(R.string.txt_sunset) + timeToString(sunset) });
 	        tsb.setTime(time);
         }
-        Log.i("", "" + min_time + " - " + sunrise + " - " + max_time + " - " + sunset);
+//        Log.i("", "" + min_time + " - " + sunrise + " - " + max_time + " - " + sunset);
 	}
     
 	//Cálculo de la hora y los minutos a partir de la hora militar
@@ -201,52 +200,62 @@ public class ShadowsActivity extends Activity implements DatePickerDialog.OnDate
         case R.id.menu_goto:
             showDialog(DIALOG_DATEPICKER);
         	return true;
-        case R.id.menu_config:
-        	sv.toggleX = !sv.toggleX; 
-        	return true;        
+//        case R.id.menu_config:
+//        	sv.toggleX = !sv.toggleX; 
+//        	return true;        
+        case R.id.menu_help:
+            showDialog(HELP_DIALOG);
+        	return true;
         }
         return false;
     }    
 
-    @Override
-    public boolean onContextItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-        case R.id.menu_now:
-        	sv.solarInformation.now(); 
-            Calendar c = sv.solarInformation.getCalendar();
-            float start_time = c.get(Calendar.HOUR_OF_DAY) + c.get(Calendar.MINUTE) / 60.0f;
-        	//Si no se invalida primero, no se pinta bien el nuevo valor del slider
-        	timeSeekBar.invalidate();
-        	setTime(start_time);
-        	setTimeLimits();
-    		sv.must_init_labels = true;
-        	return true;
-        case R.id.menu_goto:
-            showDialog(DIALOG_DATEPICKER);
-        	return true;
-        case R.id.menu_config:
-        	sv.toggleX = !sv.toggleX; 
-        	return true;        
-        }
-        return false;
-    }    
+//    @Override
+//    public boolean onContextItemSelected(MenuItem item) {
+//        switch (item.getItemId()) {
+//        case R.id.menu_now:
+//        	sv.solarInformation.now(); 
+//            Calendar c = sv.solarInformation.getCalendar();
+//            float start_time = c.get(Calendar.HOUR_OF_DAY) + c.get(Calendar.MINUTE) / 60.0f;
+//        	//Si no se invalida primero, no se pinta bien el nuevo valor del slider
+//        	timeSeekBar.invalidate();
+//        	setTime(start_time);
+//        	setTimeLimits();
+//    		sv.must_init_labels = true;
+//        	return true;
+//        case R.id.menu_goto:
+//            showDialog(DIALOG_DATEPICKER);
+//        	return true;
+////        case R.id.menu_config:
+////        	sv.toggleX = !sv.toggleX; 
+////        	return true;        
+//        }
+//        return false;
+//    }    
 
 	static final int DIALOG_DATEPICKER = 0;
-    
+    static final int PROGRESS_DIALOG = 1;
+    static final int HELP_DIALOG = 2;
+   
     @Override
     protected Dialog onCreateDialog(int id) {
-        Dialog d;
+        Dialog d = null;
 
         switch (id) {
         case DIALOG_DATEPICKER:
-            d = new DatePickerDialog(
-                    ShadowsActivity.this,
-                    this,
-                    2008,
-                    1,
-                    1);
-            d.setTitle("Seleccione el día");
+            d = new DatePickerDialog(ShadowsActivity.this, this, 2008, 1, 1);
+            d.setTitle(getText(R.string.txt_day_selection));
             break;
+        case PROGRESS_DIALOG:
+//            d = new ProgressDialog(ShadowsActivity.this);
+////            ProgressDialog.show(getApplicationContext(), "", "Loading. Please wait...", true);
+//            ((ProgressDialog)d).setMessage("Loading. Please wait...");
+            break;
+        case HELP_DIALOG:
+          d = new Dialog(ShadowsActivity.this);
+          d.setContentView(R.layout.help);
+          d.setTitle(R.string.app_title);
+          break;
         default:
             d = null;
         }
