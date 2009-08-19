@@ -33,7 +33,8 @@ public class SolarInformation {
 	static public double DEFAULT_LONGITUDE = -5.97d;
 	
 	Calendar calendar = new GregorianCalendar();//Calendar.getInstance();
-	float time_zone   = calendar.get(Calendar.ZONE_OFFSET) / 3600000.0f; // 1000 * 60 * 60
+	float time_zone   = (calendar.get(Calendar.ZONE_OFFSET) + calendar.get(Calendar.DST_OFFSET)) / 3600000.0f; // 1000 * 60 * 60
+	
 	double latitude   = 37.36d;
 	double longitude  = -5.97d;
 	int time_window = 24*60; //En minutos
@@ -83,7 +84,7 @@ public class SolarInformation {
 	
 	synchronized public void now() {
 		calendar = new GregorianCalendar();
-		time_zone   = calendar.get(Calendar.ZONE_OFFSET) / 3600000.0f; // 1000 * 60 * 60
+		time_zone   = (calendar.get(Calendar.ZONE_OFFSET) + calendar.get(Calendar.DST_OFFSET)) / 3600000.0f; // 1000 * 60 * 60
 		recalculate = true;
 	}
 	
