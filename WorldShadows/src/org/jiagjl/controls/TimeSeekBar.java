@@ -157,14 +157,4 @@ public class TimeSeekBar extends HorizontalDoubleSeekBar implements IDoubleSeekB
 		onMaxValueChange( minValue+time_window );
 	}
 	
-	//Cálculo de la hora y los minutos a partir de la hora militar
-//	static private String toHoursMinutes( float time, float maxRange, int minuteGap ) {
-//		String minute, hour;
-//		int t = (int) Math.floor(time);
-//		int m = (int) Math.floor((time - t) * maxRange)*minuteGap;
-//		if (m < 10) minute = "0" + m; else minute = ""+m;
-//		if (t < 10) hour = "0" + t; else hour = ""+t;
-//		
-//		return hour + ":" + minute;
-//	}
 }
