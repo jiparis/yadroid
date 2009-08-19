@@ -31,7 +31,6 @@ public class SolarInformation {
 	static public int DEFAULT_TIME_WINDOW = 4 * 60;
 	static public double DEFAULT_LATITUDE  = 37.36d;
 	static public double DEFAULT_LONGITUDE = -5.97d;
-	
 	Calendar calendar = new GregorianCalendar();//Calendar.getInstance();
 	float time_zone   = (calendar.get(Calendar.ZONE_OFFSET) + calendar.get(Calendar.DST_OFFSET)) / 3600000.0f; // 1000 * 60 * 60
 	
@@ -578,27 +577,6 @@ public class SolarInformation {
 
     }
 	
-	/*
-	 * Un método de prueba que devuelve en un array de floats  que representan una cuarta de circunferencia
-	 */
-	public float[] calculaSombraTest(){
-		
-		float[] puntos2=new float[36];
-		puntos2[0]=puntos2[1]=0;
-		float angle=0;
-		for(int i=0;i<17;i++){
-			angle=(float)((Math.PI/32)*i);
-			float x=(float)(5*Math.cos(angle));
-			float y=(float)(5*Math.sin(angle));
-			puntos2[2*i+2]=(x<0.1f?0:x);
-			puntos2[2*i+3]=(y<0.1f?0:y);
-		}
-//		for(int i=0;i<puntos2.length;i=i+2){
-//			System.out.println(puntos2[i]+" , "+puntos2[i+1]);
-//		}
-
-		return puntos2;
-	}
 
 	
 	synchronized public float[] calculateStripShadow(Calendar instant){
@@ -672,102 +650,139 @@ public class SolarInformation {
         
                 
         return stripShadow;
-    }	
-	synchronized public float[] calculateRectangleShadow(Calendar instant) {
+    }
+
+	
+	synchronized public float[] calculateRectangleShadow(Calendar instant, float rotation) {
         /*
          * La franja de sombra será descrita por cuatro puntos, el origen, la sombra en el instante pasado como parámetro
          *  y dos puntos que representan la sombra 5 minutos antes y después del instante pasado como parámetro.
          */
-        float xy[] =calculatePointShadow(instant);
-        float[] stripShadow=new float[10];
-        double azimut=getValue(AZIMUT_VALUE);
-        
-        //SUNSET:Actualizo la hora de la puesta de SOL
-        TimeZone tz=instant.getTimeZone();        
-        double time = this.getValue(SUNSET_VALUE);
+ 	  System.out.println("ROTACIÓN:"+rotation);
+		float offset=0.13f;
+//		float[] punto1=this.transformCoordinatePoint(new float[]{offset,offset},rotation);
+//		float[] punto2=this.transformCoordinatePoint(new float[]{offset,-offset},rotation);
+//		float[] punto3=this.transformCoordinatePoint(new float[]{-offset,-offset},rotation);
+//		float[] punto4=this.transformCoordinatePoint(new float[]{-offset,offset},rotation);
+
+		float[] punto1=new float[]{offset,offset};
+		float[] punto2=new float[]{offset,-offset};
+		float[] punto3=new float[]{-offset,-offset};
+		float[] punto4=new float[]{-offset,offset};
+
+		float prerotate[] =calculatePointShadow(instant);
+		float xy[] =this.transformCoordinatePoint(prerotate, rotation);
+		float[] stripShadow=new float[12];
+		//SUNSET:Actualizo la hora de la puesta de SOL
+		TimeZone tz=instant.getTimeZone();        
+		double time = this.getValue(SUNSET_VALUE);
 		int t = (int) Math.floor(time);
 		int m = (int) Math.floor((time - t) * 60.0);
 		Calendar sunsetDate = new GregorianCalendar(instant.get(Calendar.YEAR), instant.get(Calendar.MONTH),
-                instant.get(Calendar.DAY_OF_MONTH),
-                t, m-5);
-        sunsetDate.setTimeZone(tz);
-        //SUNRISE:Actualizo la hora de la salida del SOL
-        time = this.getValue(SUNRISE_VALUE);
+				instant.get(Calendar.DAY_OF_MONTH),
+				t, m-5);
+		sunsetDate.setTimeZone(tz);
+		//SUNRISE:Actualizo la hora de la salida del SOL
+		time = this.getValue(SUNRISE_VALUE);
 		t = (int) Math.floor(time);
 		m = (int) Math.floor((time - t) * 60.0);
 		Calendar sunriseDate = new GregorianCalendar(instant.get(Calendar.YEAR), instant.get(Calendar.MONTH),
-                instant.get(Calendar.DAY_OF_MONTH),
-                t, m+5);
-        sunriseDate.setTimeZone(tz);
-        if(instant.before(sunriseDate)||instant.after(sunsetDate)){
-            return new float[]{0f,0f};
-        }
-       float offset=0.125f;
-       if(xy[0]>0 && xy[1]>0){
-    	   stripShadow[0]=-offset;
-    	   stripShadow[1]=offset;
-    	   
-    	   stripShadow[2]=offset;
-    	   stripShadow[3]=-offset;
-    	   
-    	   stripShadow[4]=xy[0]+offset;
-    	   stripShadow[5]=xy[1]-offset;
-    	   
-    	   stripShadow[6]=xy[0]+offset;
-    	   stripShadow[7]=xy[1]+offset;
-    	   
-    	   stripShadow[8]=xy[0]-offset;
-    	   stripShadow[9]=xy[1]+offset;   	   
-       }else if(xy[0]>0 && xy[1]<0){
-    	   stripShadow[0]=offset;
-    	   stripShadow[1]=offset;
-    	   
-    	   stripShadow[2]=-offset;
-    	   stripShadow[3]=-offset;
-    	   
-    	   stripShadow[4]=xy[0]-offset;
-    	   stripShadow[5]=xy[1]-offset;
-    	   
-    	   stripShadow[6]=xy[0]+offset;
-    	   stripShadow[7]=xy[1]-offset;
-    	   
-    	   stripShadow[8]=xy[0]+offset;
-    	   stripShadow[9]=xy[1]+offset;
-       }else if(xy[0]<0 && xy[1]<0){
-    	   stripShadow[0]=offset;
-    	   stripShadow[1]=-offset;
-    	   
-    	   stripShadow[2]=-offset;
-    	   stripShadow[3]=offset;
-    	   
-    	   stripShadow[4]=xy[0]-offset;
-    	   stripShadow[5]=xy[1]+offset;
-    	   
-    	   stripShadow[6]=xy[0]-offset;
-    	   stripShadow[7]=xy[1]-offset;
-    	   
-    	   stripShadow[8]=xy[0]+offset;
-    	   stripShadow[9]=xy[1]-offset;
-       }else if(xy[0]<0 && xy[1]>0){
-    	   stripShadow[0]=-offset;
-    	   stripShadow[1]=-offset;
-    	   
-    	   stripShadow[2]=offset;
-    	   stripShadow[3]=offset;
-    	   
-    	   stripShadow[4]=xy[0]+offset;
-    	   stripShadow[5]=xy[1]+offset;
-    	   
-    	   stripShadow[6]=xy[0]-offset;
-    	   stripShadow[7]=xy[1]+offset;
-    	   
-    	   stripShadow[8]=xy[0]-offset;
-    	   stripShadow[9]=xy[1]-offset;
-       }
-                
-        return stripShadow;
-    }		
+				instant.get(Calendar.DAY_OF_MONTH),
+				t, m+5);
+		sunriseDate.setTimeZone(tz);
+		if(instant.before(sunriseDate)||instant.after(sunsetDate)){
+			return new float[]{0f,0f};
+		}
+		if(prerotate[0]>0 && prerotate[1]>0){
+			stripShadow[0]=punto2[0];
+			stripShadow[1]=punto2[1];
+
+			stripShadow[2]=0F;
+			stripShadow[3]=0F;
+
+			stripShadow[4]=punto4[0];
+			stripShadow[5]=punto4[1];
+
+			stripShadow[6]=prerotate[0]+punto4[0];
+			stripShadow[7]=prerotate[1]+punto4[1];
+
+			stripShadow[8]=prerotate[0]+punto1[0];
+			stripShadow[9]=prerotate[1]+punto1[1];
+
+			stripShadow[10]=prerotate[0]+punto2[0];
+			stripShadow[11]=prerotate[1]+punto2[1];  
+
+		}else if(prerotate[0]>0 && prerotate[1]<0){
+			stripShadow[0]=punto1[0];
+			stripShadow[1]=punto1[1];
+
+			stripShadow[2]=0F;
+			stripShadow[3]=0F;
+
+			stripShadow[4]=punto3[0];
+			stripShadow[5]=punto3[1];
+
+			stripShadow[6]=prerotate[0]+punto3[0];
+			stripShadow[7]=prerotate[1]+punto3[1];
+
+			stripShadow[8]=prerotate[0]+punto2[0];
+			stripShadow[9]=prerotate[1]+punto2[1];
+
+			stripShadow[10]=prerotate[0]+punto1[0];
+			stripShadow[11]=prerotate[1]+punto1[1];
+
+		}else if(prerotate[0]<0 && prerotate[1]<0){
+			stripShadow[0]=punto2[0];
+			stripShadow[1]=punto2[1];
+
+			stripShadow[2]=0F;
+			stripShadow[3]=0F;
+
+			stripShadow[4]=punto4[0];
+			stripShadow[5]=punto4[1];
+
+			stripShadow[6]=prerotate[0]+punto4[0];
+			stripShadow[7]=prerotate[1]+punto4[1];
+
+			stripShadow[8]=prerotate[0]+punto3[0];
+			stripShadow[9]=prerotate[1]+punto3[1];
+
+			stripShadow[10]=prerotate[0]+punto2[0];
+			stripShadow[11]=prerotate[1]+punto2[1];
+
+		}else if(prerotate[0]<0 && prerotate[1]>0){
+			stripShadow[0]=punto1[0];
+			stripShadow[1]=punto1[1];
+
+			stripShadow[2]=0F;
+			stripShadow[3]=0F;
+
+			stripShadow[4]=punto3[0];
+			stripShadow[5]=punto3[1];
+
+			stripShadow[6]=prerotate[0]+punto3[0];
+			stripShadow[7]=prerotate[1]+punto3[1];
+
+			stripShadow[8]=prerotate[0]+punto4[0];
+			stripShadow[9]=prerotate[1]+punto4[1];
+
+			stripShadow[10]=prerotate[0]+punto1[0];
+			stripShadow[11]=prerotate[1]+punto1[1];
+	}
+
+		return stripShadow;
+    }
+
 	
+	
+	
+	private float[] transformCoordinatePoint(float[] point,float angle){
+		System.out.println("angle:"+angle);
+		float[] transformPoint = new float[2];
+		transformPoint[0]=point[0]*(float)Math.cos(angle)+point[1]*(float)Math.sin(angle);
+		transformPoint[1]=-point[0]*(float)Math.sin(angle)+point[1]*(float)Math.cos(angle);
+		return transformPoint;
+	}
 
 	static public void main( String[] argv ) {
 		SolarInformation solin = new SolarInformation();
@@ -784,4 +799,123 @@ public class SolarInformation {
 		System.out.println( "Sunset:   " + solin.getTime( SUNSET_TIME ) );
 	}
 	
+	/*
+	 * Un método de prueba que devuelve en un array de floats  que representan una cuarta de circunferencia
+	 */
+	public float[] calculaSombraTest(){
+		
+		float[] puntos2=new float[36];
+		puntos2[0]=puntos2[1]=0;
+		float angle=0;
+		for(int i=0;i<17;i++){
+			angle=(float)((Math.PI/32)*i);
+			float x=(float)(5*Math.cos(angle));
+			float y=(float)(5*Math.sin(angle));
+			puntos2[2*i+2]=(x<0.1f?0:x);
+			puntos2[2*i+3]=(y<0.1f?0:y);
+		}
+//		for(int i=0;i<puntos2.length;i=i+2){
+//			System.out.println(puntos2[i]+" , "+puntos2[i+1]);
+//		}
+
+		return puntos2;
+	}
+
+	
+	
+//	synchronized public float[] calculateRectangleShadow(Calendar instant) {
+//  /*
+//   * La franja de sombra será descrita por cuatro puntos, el origen, la sombra en el instante pasado como parámetro
+//   *  y dos puntos que representan la sombra 5 minutos antes y después del instante pasado como parámetro.
+//   */
+// 
+//  float xy[] =calculatePointShadow(instant);
+//  System.out.println("AZIMUT:"+this.getValue(AZIMUT_VALUE));
+//  float[] stripShadow=new float[10];
+//  //SUNSET:Actualizo la hora de la puesta de SOL
+//  TimeZone tz=instant.getTimeZone();        
+//  double time = this.getValue(SUNSET_VALUE);
+//	int t = (int) Math.floor(time);
+//	int m = (int) Math.floor((time - t) * 60.0);
+//	Calendar sunsetDate = new GregorianCalendar(instant.get(Calendar.YEAR), instant.get(Calendar.MONTH),
+//          instant.get(Calendar.DAY_OF_MONTH),
+//          t, m-5);
+//  sunsetDate.setTimeZone(tz);
+//  //SUNRISE:Actualizo la hora de la salida del SOL
+//  time = this.getValue(SUNRISE_VALUE);
+//	t = (int) Math.floor(time);
+//	m = (int) Math.floor((time - t) * 60.0);
+//	Calendar sunriseDate = new GregorianCalendar(instant.get(Calendar.YEAR), instant.get(Calendar.MONTH),
+//          instant.get(Calendar.DAY_OF_MONTH),
+//          t, m+5);
+//  sunriseDate.setTimeZone(tz);
+//  if(instant.before(sunriseDate)||instant.after(sunsetDate)){
+//      return new float[]{0f,0f};
+//  }
+// float offset=0.125f;
+// if(xy[0]>0 && xy[1]>0){
+//		   stripShadow[0]=-offset;
+//		   stripShadow[1]=offset;
+//
+//		   stripShadow[2]=offset;
+//		   stripShadow[3]=-offset;
+//
+//		   stripShadow[4]=xy[0]+offset;
+//		   stripShadow[5]=xy[1]-offset;
+//
+//		   stripShadow[6]=xy[0]+offset;
+//		   stripShadow[7]=xy[1]+offset;
+//
+//		   stripShadow[8]=xy[0]-offset;
+//		   stripShadow[9]=xy[1]+offset;  
+//	   
+// }else if(xy[0]>0 && xy[1]<0){
+//	   stripShadow[0]=offset;
+//	   stripShadow[1]=offset;
+//	   
+//	   stripShadow[2]=-offset;
+//	   stripShadow[3]=-offset;
+//	   
+//	   stripShadow[4]=xy[0]-offset;
+//	   stripShadow[5]=xy[1]-offset;
+//	   
+//	   stripShadow[6]=xy[0]+offset;
+//	   stripShadow[7]=xy[1]-offset;
+//	   
+//	   stripShadow[8]=xy[0]+offset;
+//	   stripShadow[9]=xy[1]+offset;
+// }else if(xy[0]<0 && xy[1]<0){
+//	   stripShadow[0]=offset;
+//	   stripShadow[1]=-offset;
+//	   
+//	   stripShadow[2]=-offset;
+//	   stripShadow[3]=offset;
+//	   
+//	   stripShadow[4]=xy[0]-offset;
+//	   stripShadow[5]=xy[1]+offset;
+//	   
+//	   stripShadow[6]=xy[0]-offset;
+//	   stripShadow[7]=xy[1]-offset;
+//	   
+//	   stripShadow[8]=xy[0]+offset;
+//	   stripShadow[9]=xy[1]-offset;
+// }else if(xy[0]<0 && xy[1]>0){
+//	   stripShadow[0]=-offset;
+//	   stripShadow[1]=-offset;
+//	   
+//	   stripShadow[2]=offset;
+//	   stripShadow[3]=offset;
+//	   
+//	   stripShadow[4]=xy[0]+offset;
+//	   stripShadow[5]=xy[1]+offset;
+//	   
+//	   stripShadow[6]=xy[0]-offset;
+//	   stripShadow[7]=xy[1]+offset;
+//	   
+//	   stripShadow[8]=xy[0]-offset;
+//	   stripShadow[9]=xy[1]-offset;
+// }
+//          
+//  return stripShadow;
+//}	
 }

@@ -259,7 +259,7 @@ public class ShadowsView extends GLBase {
 		softAngles();
 
 		//float[] sombra=solarInformation.calculateStripShadow(solarInformation.getCalendar());
-		float[] sombra=solarInformation.calculateRectangleShadow(solarInformation.getCalendar());
+		float[] sombra=solarInformation.calculateRectangleShadow(solarInformation.getCalendar(),rquad);
 		shadowsBuff=makeFloatBuffer(sombra);
 
 		
