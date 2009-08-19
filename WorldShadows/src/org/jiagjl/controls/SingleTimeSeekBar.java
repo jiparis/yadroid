@@ -190,7 +190,6 @@ public class SingleTimeSeekBar extends SeekBar implements SeekBar.OnSeekBarChang
         }
 	}
 	
-	@Override
 	public void onProgressChanged(SeekBar seekBar, int newValue, boolean fromUser) {
 		minValue = newValue;
 		if ( minValue < ATTRACTOR_MIN )
@@ -214,12 +213,12 @@ public class SingleTimeSeekBar extends SeekBar implements SeekBar.OnSeekBarChang
 		invalidate();
 	}
 
-	@Override
+	
 	public void onStartTrackingTouch(SeekBar arg0) {
 		textSize = labelSizeHighlight;
 	}
 
-	@Override
+	
 	public void onStopTrackingTouch(SeekBar arg0) {
 		textSize = labelSize;
 		invalidate();

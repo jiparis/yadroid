@@ -285,6 +285,58 @@ public abstract class GLBase extends SurfaceView implements SurfaceHolder.Callba
 	 GLDrawEllipse(gl, circleSegments, circleSize, circleSize, centerx, centery, filled);
 	}
 	
+	public void drawCube(GL10 gl){
+		float box[] = new float[] {
+				// FRONT
+				-0.5f, -0.5f,  0.5f,
+				 0.5f, -0.5f,  0.5f,
+				-0.5f,  0.5f,  0.5f,
+				 0.5f,  0.5f,  0.5f,
+				// BACK
+				-0.5f, -0.5f, -0.5f,
+				-0.5f,  0.5f, -0.5f,
+				 0.5f, -0.5f, -0.5f,
+				 0.5f,  0.5f, -0.5f,
+				// LEFT
+				-0.5f, -0.5f,  0.5f,
+				-0.5f,  0.5f,  0.5f,
+				-0.5f, -0.5f, -0.5f,
+				-0.5f,  0.5f, -0.5f,
+				// RIGHT
+				 0.5f, -0.5f, -0.5f,
+				 0.5f,  0.5f, -0.5f,
+				 0.5f, -0.5f,  0.5f,
+				 0.5f,  0.5f,  0.5f,
+				// TOP
+				-0.5f,  0.5f,  0.5f,
+				 0.5f,  0.5f,  0.5f,
+				 -0.5f,  0.5f, -0.5f,
+				 0.5f,  0.5f, -0.5f,
+				// BOTTOM
+				-0.5f, -0.5f,  0.5f,
+				-0.5f, -0.5f, -0.5f,
+				 0.5f, -0.5f,  0.5f,
+				 0.5f, -0.5f, -0.5f,
+			};
+		
+		FloatBuffer cubeBuff = makeFloatBuffer(box);		
+		
+		gl.glVertexPointer(3, GL10.GL_FLOAT, 0, cubeBuff);
+
+		gl.glNormal3f(0,0,1);
+		gl.glDrawArrays(GL10.GL_TRIANGLE_STRIP, 0, 4);
+		gl.glNormal3f(0,0,-1);
+		gl.glDrawArrays(GL10.GL_TRIANGLE_STRIP, 4, 4);
+		gl.glNormal3f(-1,0,0);
+		gl.glDrawArrays(GL10.GL_TRIANGLE_STRIP, 8, 4);
+		gl.glNormal3f(1,0,0);
+		gl.glDrawArrays(GL10.GL_TRIANGLE_STRIP, 12, 4);
+		gl.glNormal3f(0,1,0);
+		gl.glDrawArrays(GL10.GL_TRIANGLE_STRIP, 16, 4);
+		gl.glNormal3f(0,-1,0);
+		gl.glDrawArrays(GL10.GL_TRIANGLE_STRIP, 20, 4);
+	}
+	
 	float degreesToRadian(float i){
 		return (float) (i * Math.PI / 180f);
 	}

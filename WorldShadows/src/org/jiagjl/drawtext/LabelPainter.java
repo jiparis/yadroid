@@ -104,7 +104,7 @@ public class LabelPainter extends LazyLabelMaker {
 			mExtra = extra.toCharArray();
 		}
 		
-		@Override
+		
 		public int getPosition(char c) {
 			int pos = c-first;
 			if ( pos < 0 || pos >= size ) {

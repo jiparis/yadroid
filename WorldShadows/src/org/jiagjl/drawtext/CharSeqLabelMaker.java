@@ -45,7 +45,7 @@ public class CharSeqLabelMaker extends LazyLabelMaker {
 			char first = seq.charAt(0);
 			int size = seq.length();
 			
-			@Override
+			
 			public int getPosition(char c) {
 		        int pos = c - first;
 		        if ( pos < 0 || pos >= size )

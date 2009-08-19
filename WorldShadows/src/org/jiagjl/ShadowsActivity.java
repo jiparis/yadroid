@@ -2,12 +2,14 @@ package org.jiagjl;
 
 import java.util.Calendar;
 
+import org.jiagjl.controls.HorizontalDoubleSeekBar;
 import org.jiagjl.controls.TimeSeekBar;
 import org.jiagjl.controls.SingleTimeSeekBar;
 
 import android.app.Activity;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
+import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -31,6 +33,7 @@ public class ShadowsActivity extends Activity implements DatePickerDialog.OnDate
         setTitle(R.string.app_name);
 //        showDialog(PROGRESS_DIALOG);
         
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         LinearLayout ll = new LinearLayout(getApplicationContext());
         ll.setOrientation(LinearLayout.VERTICAL);
         ll.setLayoutParams(new LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT,
