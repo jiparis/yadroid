@@ -9,12 +9,11 @@ import android.app.Activity;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
 import android.os.Bundle;
-import android.view.ContextMenu;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ContextMenu.ContextMenuInfo;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.DatePicker;
 import android.widget.LinearLayout;
@@ -26,10 +25,6 @@ public class ShadowsActivity extends Activity implements DatePickerDialog.OnDate
     View timeSeekBar;
     boolean mSingle = true;
 
-	/**
-	 * EVENTS
-	 */
-	
 	/** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -50,26 +45,27 @@ public class ShadowsActivity extends Activity implements DatePickerDialog.OnDate
         												LayoutParams.FILL_PARENT, 1));
         sv.setClickable(true);
         
-        float max_time = 22f;
         float min_time = 8f;
+        float max_time = 22f;
         Calendar c = sv.solarInformation.getCalendar();
         float start_time = c.get(Calendar.HOUR_OF_DAY) + c.get(Calendar.MINUTE) / 60.0f;
         
         if ( mSingle ) {
-	        timeSeekBar = new SingleTimeSeekBar(getApplicationContext(), min_time,
-	        		max_time, 30, (int)sv.solarInformation.getValue(SolarInformation.TIME_WINDOW_VALUE) / 60,
-	        		new TimeSeekBar.ITimeBarCallback() {
+	        timeSeekBar = new SingleTimeSeekBar(getApplicationContext(),
+					min_time, max_time, 5, new TimeSeekBar.ITimeBarCallback() {
 						public void onEndTimeValueChange(int hour, int minute) {
 						}
 						public void onStartTimeValueChange(int hour, int minute) {
-//							Log.i( "SHADOWS", "Start: " + hour + ":" + minute  );
 							sv.solarInformation.setTime(hour, minute);
+							//Log.i( "SHADOWS", "Start: " + hour + ":" + minute  );
 						}
-					}, false);
+					});
 	        timeSeekBar.setLayoutParams(new LinearLayout.LayoutParams(LayoutParams.FILL_PARENT, 75, 0));
 	        SingleTimeSeekBar tsb = (SingleTimeSeekBar)timeSeekBar;
 	        tsb.setProgressDrawable(getResources().getDrawable(R.xml.seekbar));
 	        tsb.setPadding(2, 25, 2, 20);
+	        setTimeLimits();
+//	        tsb.setTimeMarks(new float[] { sunrise, sunset }, new String[] { "Sunrise", "Sunset" });
         } else {
 	        timeSeekBar = new TimeSeekBar(getApplicationContext(), min_time,
 	        		max_time, 30, (int)sv.solarInformation.getValue(SolarInformation.TIME_WINDOW_VALUE) / 60,
@@ -111,6 +107,34 @@ public class ShadowsActivity extends Activity implements DatePickerDialog.OnDate
         	((SingleTimeSeekBar)timeSeekBar).setTime( startTime );
 	}
     
+	public void setTimeLimits() {
+        float sunrise = (float) sv.solarInformation.getValue(SolarInformation.SUNRISE_VALUE);
+        float sunset = (float) sv.solarInformation.getValue(SolarInformation.SUNSET_VALUE); 
+        float min_time = (float)Math.floor( sunrise - 1.5f );
+        float max_time = (float)Math.ceil( sunset + 1.5f ); 
+        if ( !mSingle )
+        	;
+        else {
+	        SingleTimeSeekBar tsb = (SingleTimeSeekBar)timeSeekBar;
+	        float time = tsb.getTime();
+	        tsb.setTimeLimits(min_time, max_time);
+	        tsb.setTimeMarks(new float[] { sunrise, sunset }, new String[] { "Sunrise " + timeToString(sunrise), "Sunset "+ timeToString(sunset) });
+	        tsb.setTime(time);
+        }
+        Log.i("", "" + min_time + " - " + sunrise + " - " + max_time + " - " + sunset);
+	}
+    
+	//Cálculo de la hora y los minutos a partir de la hora militar
+	static public String timeToString( float time ) {
+		String minute, hour;
+		int t = (int) Math.floor(time);
+		int m = (int) Math.floor((time - t) * 60f );
+		if (m < 10) minute = "0" + m; else minute = ""+m;
+		if (t < 10) hour = "0" + t; else hour = ""+t;
+		
+		return hour + ":" + minute;
+	}
+	
     // activity stopped and restarted
     @Override
     protected void onRestart(){
@@ -150,9 +174,6 @@ public class ShadowsActivity extends Activity implements DatePickerDialog.OnDate
 		super.onDestroy();
 	}
 
-	/**
-	 * MENUS
-	 */
 	
 	/**
      * Called when your activity's options menu needs to be created.
@@ -174,6 +195,7 @@ public class ShadowsActivity extends Activity implements DatePickerDialog.OnDate
         	//Si no se invalida primero, no se pinta bien el nuevo valor del slider
         	timeSeekBar.invalidate();
         	setTime(start_time);
+        	setTimeLimits();
     		sv.must_init_labels = true;
         	return true;
         case R.id.menu_goto:
@@ -196,6 +218,7 @@ public class ShadowsActivity extends Activity implements DatePickerDialog.OnDate
         	//Si no se invalida primero, no se pinta bien el nuevo valor del slider
         	timeSeekBar.invalidate();
         	setTime(start_time);
+        	setTimeLimits();
     		sv.must_init_labels = true;
         	return true;
         case R.id.menu_goto:
@@ -248,6 +271,7 @@ public class ShadowsActivity extends Activity implements DatePickerDialog.OnDate
 	public void onDateSet(DatePicker view, int year, int month, int day) {
 		sv.solarInformation.setDate(year, month, day);
 		sv.must_init_labels = true;
+        setTimeLimits();
 //		Log.i( "DatePicker", ""+year+"-"+month+"-"+day );
 	}
     
