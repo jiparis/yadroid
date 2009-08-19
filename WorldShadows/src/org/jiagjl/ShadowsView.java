@@ -383,7 +383,8 @@ public class ShadowsView extends GLBase {
 		gl.glPushMatrix();
 			synchronized (this) {
 				//Obtenemos la matriz de rotación simultanea en los 3 ejes
-				Utils.quatToMatrix( qm, 0, Utils.eulerToQuat((float)(xrot*Math.PI/180.0), (float)(yrot*Math.PI/180.0), (float)(rquad*Math.PI/180.0)) );
+//				Utils.quatToMatrix( qm, 0, Utils.eulerToQuat((float)(xrot*Math.PI/180.0), (float)(yrot*Math.PI/180.0), (float)(rquad*Math.PI/180.0)) );
+				Utils.quatToMatrix( qm, 0, Utils.eulerToQuat((float)(xrot*Math.PI/180.0), (float)(yrot*Math.PI/180.0), 0 ) );
 				//La aplicamos al modelo multiplicandola con OpenGL
 				gl.glMultMatrixf(qm, 0);
 			}
