@@ -2,7 +2,6 @@ package org.jiagjl;
 
 import java.util.Calendar;
 
-import org.jiagjl.controls.HorizontalDoubleSeekBar;
 import org.jiagjl.controls.TimeSeekBar;
 import org.jiagjl.controls.SingleTimeSeekBar;
 
@@ -203,9 +202,9 @@ public class ShadowsActivity extends Activity implements DatePickerDialog.OnDate
         case R.id.menu_goto:
             showDialog(DIALOG_DATEPICKER);
         	return true;
-//        case R.id.menu_config:
-//        	sv.toggleX = !sv.toggleX; 
-//        	return true;        
+        case R.id.menu_config:
+        	sv.toggleDec = (sv.toggleDec+1)%3; 
+        	return true;        
         case R.id.menu_help:
             showDialog(HELP_DIALOG);
         	return true;

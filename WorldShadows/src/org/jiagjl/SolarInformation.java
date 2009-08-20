@@ -583,19 +583,15 @@ public class SolarInformation {
         double azimut=getValue(AZIMUT_VALUE);
         double shadowLength=getValue(SHADOW_LENGTH_VALUE);
         shadowLength=(shadowLength>MAX_SHADOW_LENGT?MAX_SHADOW_LENGT:shadowLength);
-        float ang = (float)azimut+rotation;
-        if ( ang >= 360 )
-        	ang -= 360;
-       	else if ( ang < 0 )
-       		ang += 360;
-        float rad = (float)(ang*Math.PI/180);
+        float ang = Utils.normDegrees((float)azimut-rotation);
+        float rad = (float)Utils.toRadians(ang);
         puntos[0]=-(float)(Math.sin(rad)*shadowLength);
         puntos[1]=-(float)(Math.cos(rad)*shadowLength);
 //        System.out.println(instant.get(Calendar.HOUR_OF_DAY)+":"+instant.get(Calendar.MINUTE)+" X:"+puntos[0]+"f, Y:"+puntos[1]+"f,"+": Azimut:"+azimut+" Longitud sombra:"+shadowLength);
         return puntos;
 
     }
-	
+
 
 	
 //	synchronized public float[] calculateStripShadow(Calendar instant){

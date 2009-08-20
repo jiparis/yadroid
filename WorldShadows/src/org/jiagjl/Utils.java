@@ -8,6 +8,29 @@ import android.util.Log;
 
 public class Utils {
 
+	static final double TO_RAD_FACTOR = Math.PI/180;
+	
+	static public float normDegrees( float degrees ) {
+		degrees %= 360;
+		if ( degrees < 0 )
+       		degrees += 360;
+        return degrees;
+	}
+
+	static public float limitDegrees( float degrees, float limit ) {
+        return limitDegrees( degrees, -limit, limit);
+	}
+	
+	static public float limitDegrees( float degrees, float min, float max ) {
+		degrees = Math.max( degrees , min );
+		degrees = Math.min( degrees , max );
+        return degrees;
+	}
+
+	static public double toRadians( float degrees ) {
+        return degrees * TO_RAD_FACTOR;
+	}
+
 	
 	static public float scaleFactor( float value, float factor, float from_min, float to_min, float to_max ) {
 		float res = factor * (value-from_min) + to_min;
