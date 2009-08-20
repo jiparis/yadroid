@@ -197,12 +197,13 @@ public class ShadowsView extends GLBase {
 	}
 
 
-
 	@Override
 	protected GL10 init(GL10 gl){
 
-		MatrixTrackingGL mgl = new MatrixTrackingGL(gl);
-		gl = (GL10)mgl;
+		if (!(gl instanceof MatrixTrackingGL) )
+			gl = new MatrixTrackingGL(gl);
+
+		gl.glMatrixMode(GL10.GL_MODELVIEW);		
 
 		// Smooth shading
 		gl.glShadeModel(GL10.GL_SMOOTH);	// Enables Smooth shading
@@ -230,9 +231,11 @@ public class ShadowsView extends GLBase {
 		gl.glLightfv(GL10.GL_LIGHT0, GL10.GL_DIFFUSE, lightDiffuse,	0);
 		gl.glLightfv(GL10.GL_LIGHT0, GL10.GL_POSITION, lightPosition, 0);
 		
+		must_init_labels = true;
+		mMLabels = null;
         initLabels(gl);
        
-        return mgl;
+        return gl;
 	}
 
 	boolean must_init_labels = true;
@@ -395,8 +398,8 @@ public class ShadowsView extends GLBase {
     			mMLabels.println(gl, mLabelRotation+paused-1, MultiLabelMaker.HA_CENTER, MultiLabelMaker.VA_TOP );
     		}
     	}
-    	if ( toggleDec > 0 )
-    		mMLabels.println(gl, (long)toggleDec, MultiLabelMaker.HA_CENTER, MultiLabelMaker.VA_TOP );
+//    	if ( toggleDec > 0 )
+//    		mMLabels.println(gl, (long)toggleDec, MultiLabelMaker.HA_CENTER, MultiLabelMaker.VA_TOP );
 
         mMLabels.flush(gl, mWidth, mHeight);
         
@@ -475,7 +478,7 @@ public class ShadowsView extends GLBase {
 	}
 
 	public boolean toggleX = true;
-	public int toggleDec = 0;
+	public int toggleDec = 1;
 	
 	float[][] rquad_window = new float[10][2];
 	{ 
@@ -507,12 +510,12 @@ public class ShadowsView extends GLBase {
 			float delta_log = delta;
 			
 			boolean discarded = true;
-			if ( speed < 50f && delta != 0 ) {
+			if ( (speed < 50f && delta != 0) || paused == 2 ) {
 				rquad_obj = (float)rquad_aux;
 				discarded = false;
-				if ( toggleDec == 1 )
+				if ( toggleDec == 1 && paused != 2 )
 					rquad_obj -= solarInformation.getValue(SolarInformation.DECLINATION_VALUE);
-				if ( toggleDec == 2 )
+				if ( toggleDec == 2  && paused != 2 )
 					rquad_obj += solarInformation.getValue(SolarInformation.DECLINATION_VALUE);
 			}
 			time = System.currentTimeMillis();
@@ -576,14 +579,14 @@ public class ShadowsView extends GLBase {
 			//Aplicamos una conversión a los grados de rotación x e y 
 			//a través de una curva exponencial para que la inclinación
 			//no sea lineal
-			//No se solarInformation sirve para algo pero me parecía interesante hacerlo ;-)
+			//No se si sirve para algo pero me parecía interesante hacerlo ;-)
 			xrot = softenDegrees(Math.abs(xrot))*Math.signum(xrot);
 			yrot = softenDegrees(Math.abs(yrot))*Math.signum(yrot);
 
 			if ( paused != 2 )
 				xrot = (toggleX?xrot-10f:xrot-20f);
 			
-//			Log.i("", xrot + " - " + yrot  );
+//			Log.i("", xrot + " - " + yrot + " - " + rquad  );
 		}
 	}
 	

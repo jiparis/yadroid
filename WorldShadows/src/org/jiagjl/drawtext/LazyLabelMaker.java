@@ -71,7 +71,7 @@ public class LazyLabelMaker {
 	protected void reinitialize( GL10 gl ) {
 		if ( !must_reinitialize )
 			return;
-		Log.i("reinitialize", "reinitialize");
+//		Log.i("reinitialize", "reinitialize");
 		int newStrikeWidth = roundUpPower2((int)maxTextSize);
 		int newStrikeHeight = size * roundUpPower2((int) mPaint.getFontSpacing());
 		if ( lm == null ) {

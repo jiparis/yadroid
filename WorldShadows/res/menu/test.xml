@@ -4,8 +4,8 @@
 		android:icon="@android:drawable/ic_menu_mylocation" />
 	<item android:id="@+id/menu_goto" android:title="@string/menu_goto"
 		android:icon="@android:drawable/ic_menu_edit" />
-	<item android:id="@+id/menu_config" android:title="@string/menu_config"
-		android:icon="@android:drawable/ic_menu_preferences" />
+	<!--  item android:id="@+id/menu_config" android:title="@string/menu_config"
+		android:icon="@android:drawable/ic_menu_preferences" / -->
 	<item android:id="@+id/menu_help" android:title="@string/menu_help"
 		android:icon="@android:drawable/ic_menu_help" />
 </menu>

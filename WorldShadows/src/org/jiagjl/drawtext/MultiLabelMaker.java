@@ -38,7 +38,7 @@ public class MultiLabelMaker extends LabelPainter {
 //		super.add(labels);
 //	}
 
-	static public final int MAX_LINES = 5;
+	static public final int MAX_LINES = 10;
 	static public final int MAX_COMMANDS = 5;
 	
 	int[][][][] commands = new int[3][3][MAX_LINES][MAX_COMMANDS]; //hAlign - vAlign - line - command

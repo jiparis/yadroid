@@ -65,7 +65,7 @@ public class ShadowsActivity extends Activity implements DatePickerDialog.OnDate
 	        timeSeekBar.setLayoutParams(new LinearLayout.LayoutParams(LayoutParams.FILL_PARENT, 75, 0));
 	        SingleTimeSeekBar tsb = (SingleTimeSeekBar)timeSeekBar;
 	        tsb.setProgressDrawable(getResources().getDrawable(R.xml.seekbar));
-	        tsb.setPadding(2, 25, 2, 20);
+	        tsb.setPadding(10, 25, 10, 20);
 	        setTimeLimits();
         } else {
 	        timeSeekBar = new TimeSeekBar(getApplicationContext(), min_time,
@@ -202,9 +202,9 @@ public class ShadowsActivity extends Activity implements DatePickerDialog.OnDate
         case R.id.menu_goto:
             showDialog(DIALOG_DATEPICKER);
         	return true;
-        case R.id.menu_config:
-        	sv.toggleDec = (sv.toggleDec+1)%3; 
-        	return true;        
+//        case R.id.menu_config:
+//        	sv.toggleDec = (sv.toggleDec+1)%3; 
+//        	return true;        
         case R.id.menu_help:
             showDialog(HELP_DIALOG);
         	return true;
