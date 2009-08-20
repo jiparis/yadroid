@@ -302,27 +302,6 @@ public class ShadowsView extends GLBase {
 		gl.glLoadIdentity();					// Reset The View, loading the identity matrix
 		gl.glTranslatef(0,0,-5); // center scene
 
-    	float shadow = (float)solarInformation.getValue(SolarInformation.SHADOW_LENGTH_VALUE);
-    	mMLabels.print(gl, mLabelShadow, MultiLabelMaker.HA_CENTER, MultiLabelMaker.VA_TOP );
-        if ( shadow > 20.0f )
-        	mMLabels.println(gl, mLabelNA, MultiLabelMaker.HA_CENTER, MultiLabelMaker.VA_TOP );
-        else  
-        	mMLabels.println(gl, (float)Math.floor(shadow*1000)/1000f, MultiLabelMaker.HA_CENTER, MultiLabelMaker.VA_TOP );
-    	mMLabels.println(gl, (int)mLabelDate, MultiLabelMaker.HA_CENTER, MultiLabelMaker.VA_TOP );
-    	if ( location != null )
-        	mMLabels.println(gl, mLabellocation, MultiLabelMaker.HA_CENTER, MultiLabelMaker.VA_TOP );
-
-    	if ( paused != 0 ) {
-    		long delta = (System.currentTimeMillis() - paused_time);
-    		long mod = delta % 1000;
-    		if ( /*delta > 10000 ||*/ mod < 500 ) {
-//            	mMLabels.println(gl, "", MultiLabelMaker.HA_CENTER, MultiLabelMaker.VA_TOP );
-    			mMLabels.println(gl, mLabelRotation+paused-1, MultiLabelMaker.HA_CENTER, MultiLabelMaker.VA_TOP );
-    		}
-    	}
-
-        mMLabels.flush(gl, mWidth, mHeight);
-        
         // mundo
         gl.glPushMatrix();
 			synchronized (this) {
@@ -397,6 +376,30 @@ public class ShadowsView extends GLBase {
 			gl.glTranslatef(0, 0, 0.01f);
 			drawShadow(gl);
 		gl.glPopMatrix();
+		
+    	float shadow = (float)solarInformation.getValue(SolarInformation.SHADOW_LENGTH_VALUE);
+    	mMLabels.print(gl, mLabelShadow, MultiLabelMaker.HA_CENTER, MultiLabelMaker.VA_TOP );
+        if ( shadow > 20.0f )
+        	mMLabels.println(gl, mLabelNA, MultiLabelMaker.HA_CENTER, MultiLabelMaker.VA_TOP );
+        else  
+        	mMLabels.println(gl, (float)Math.floor(shadow*1000)/1000f, MultiLabelMaker.HA_CENTER, MultiLabelMaker.VA_TOP );
+    	mMLabels.println(gl, (int)mLabelDate, MultiLabelMaker.HA_CENTER, MultiLabelMaker.VA_TOP );
+    	if ( location != null )
+        	mMLabels.println(gl, mLabellocation, MultiLabelMaker.HA_CENTER, MultiLabelMaker.VA_TOP );
+
+    	if ( paused != 0 ) {
+    		long delta = (System.currentTimeMillis() - paused_time);
+    		long mod = delta % 1000;
+    		if ( /*delta > 10000 ||*/ mod < 500 ) {
+//            	mMLabels.println(gl, "", MultiLabelMaker.HA_CENTER, MultiLabelMaker.VA_TOP );
+    			mMLabels.println(gl, mLabelRotation+paused-1, MultiLabelMaker.HA_CENTER, MultiLabelMaker.VA_TOP );
+    		}
+    	}
+    	if ( toggleDec > 0 )
+    		mMLabels.println(gl, (long)toggleDec, MultiLabelMaker.HA_CENTER, MultiLabelMaker.VA_TOP );
+
+        mMLabels.flush(gl, mWidth, mHeight);
+        
 	}
 
 	private void drawWorld(GL10 gl) {
@@ -472,33 +475,70 @@ public class ShadowsView extends GLBase {
 	}
 
 	public boolean toggleX = true;
+	public int toggleDec = 0;
+	
+	float[][] rquad_window = new float[10][2];
+	{ 
+		rquad_window[0][0] = Float.NEGATIVE_INFINITY;
+		rquad_window[0][1] =  (float)System.currentTimeMillis();
+	}
+	int window_size = rquad_window.length;
+	int window_first = 0;
+	int window_last = -1;
+	
 	
 	private void softAngles() {
 		synchronized (this) {
-//			Log.i("", ""+rquad_aux );
-			float delta = rquad_aux-rquad_aux_prev;
-			float speed = Math.abs(delta) / (System.currentTimeMillis()-time);
-			if ( speed < 0.01f )
-				rquad_obj = (float) (rquad_aux - solarInformation.getValue(SolarInformation.DECLINATION_VALUE));
+			int wl_aux = (window_last+1)%window_size;
+			if ( window_first == wl_aux && window_last >= 0 )
+				window_first = (window_first+1)%window_size;
+			window_last = wl_aux;
+			
+			rquad_window[window_last][0] = rquad_aux;
+			rquad_window[window_last][1] = System.currentTimeMillis();
+			
+			float delta = Math.abs(rquad_window[window_last][0]-rquad_window[window_first][0]);
+			if ( delta > 180 ) {
+				delta = 360-delta;
+			}
+			
+			float speed = delta / (rquad_window[window_last][1]-rquad_window[window_first][1]+1);
+
+			float delta_log = delta;
+			
+			boolean discarded = true;
+			if ( speed < 50f && delta != 0 ) {
+				rquad_obj = (float)rquad_aux;
+				discarded = false;
+				if ( toggleDec == 1 )
+					rquad_obj -= solarInformation.getValue(SolarInformation.DECLINATION_VALUE);
+				if ( toggleDec == 2 )
+					rquad_obj += solarInformation.getValue(SolarInformation.DECLINATION_VALUE);
+			}
 			time = System.currentTimeMillis();
 			rquad_aux_prev = rquad_aux;
 
 			float inc = 1;
-			delta = rquad_obj-rquad; 
-										   
-			if ( Math.abs(delta) > 180 )
-				delta = delta-(360 * Math.signum(delta));
-			
-			if ( -1 <= delta && delta <= 1 )
-				inc = delta;
-			else if ( -5 <= delta && delta <= 5 )
-				inc = 1 * Math.signum(delta);
-			else if ( -20 <= delta && delta <= 20 )
-				inc = 5 * Math.signum(delta);
-			else if ( -50 <= delta && delta <= 50 )
-				inc = 10 * Math.signum(delta);
+			float rquad_t = rquad + (360 - rquad_obj);
+			if ( rquad_t > 360 )
+				rquad_t -= 360;
+			float sign = -1;
+			delta = rquad_t;
+			if ( rquad_t >= 180 ) {
+				sign = 1;
+				delta = 360-rquad_t;
+			}
+				
+			if ( delta <= 1 )
+				inc = sign * delta;
+			else if ( delta <= 5 )
+				inc = 1 * sign;
+			else if ( delta <= 20 )
+				inc = 5 * sign;
+			else if ( delta <= 50 )
+				inc = 10 * sign;
 			else
-				inc = 15 * Math.signum(delta);
+				inc = 15 * sign;
 	
 			rquad += inc;
 			if ( rquad < 0 )
@@ -506,6 +546,16 @@ public class ShadowsView extends GLBase {
 			else if ( rquad >= 360 )
 				rquad -= 360;
 			rquad = Math.round(rquad);
+//			Log.i( "ROTACIÓN", rquad_obj + " - " + speed + " - " + delta_raw + " - " + delta + " - " + rquad_log + " - " + rquad + " - " + inc );
+//			Log.i( "ROTACIÓN", speed + " - " + rquad_obj + " - " + rquad_aux + " - " + delta_raw + " - " + (discarded?"DISCARDED":"")  );
+//			Log.i("ROTACIÓN", 
+//					 "s:"  + r(speed) + 
+//					" o:" + r(rquad_obj) + 
+//					" l:"  + r(rquad_window[window_last][0]) + 
+//					" f:"  + r(rquad_window[window_first][0]) + 
+//					" d:"  + r(delta_log) + 
+//					" do:"  + r(delta*sign) + 
+//					" - "   + (discarded ? "DISCARDED" : ""));
 
 			//Inclinamos la x un poco, porque es la forma natural del
 			//teléfono en la mano
@@ -537,4 +587,15 @@ public class ShadowsView extends GLBase {
 		}
 	}
 	
+	static private String r( float v ) {
+		
+		char[] cad = "0000.000".toCharArray();
+		String number = ""+v;
+		int pos = number.indexOf('.');
+		for ( int n = pos-1; n>=0; n-- )
+			cad[4-pos+n] = number.charAt(n);
+		for ( int n = pos+1; (4+n-pos) < cad.length && n < number.length(); n++ )
+			cad[4+n-pos] = number.charAt(n);
+		return new String(cad);
+	}
 }
