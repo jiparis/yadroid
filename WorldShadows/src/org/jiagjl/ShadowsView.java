@@ -479,7 +479,7 @@ public class ShadowsView extends GLBase {
 			float delta = rquad_aux-rquad_aux_prev;
 			float speed = Math.abs(delta) / (System.currentTimeMillis()-time);
 			if ( speed < 0.01f )
-				rquad_obj = rquad_aux;
+				rquad_obj = (float) (rquad_aux - solarInformation.getValue(SolarInformation.DECLINATION_VALUE));
 			time = System.currentTimeMillis();
 			rquad_aux_prev = rquad_aux;
 

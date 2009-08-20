@@ -6,6 +6,8 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.TimeZone;
 
+import org.jiagjl.geomag.geomagModel;
+
 
 
 public class SolarInformation {
@@ -18,6 +20,7 @@ public class SolarInformation {
 	final static public int SUNSET_VALUE = 5;
 	final static public int SHADOW_LENGTH_VALUE = 6;
 	final static public int TIME_WINDOW_VALUE = 7;
+	final static public int DECLINATION_VALUE = 8;
 
 	final static public int LOCAL_TIME = 100;
 	final static public int SOLAR_TIME = 101;
@@ -39,12 +42,15 @@ public class SolarInformation {
 	int time_window = 24*60; //En minutos
 
 	boolean recalculate = true;
+	double declination = Double.NEGATIVE_INFINITY;
+	geomagModel model;
 	
 	public SolarInformation() {
 		now();
 		latitude   = DEFAULT_LATITUDE;
 		longitude  = DEFAULT_LONGITUDE;
-		time_window = DEFAULT_TIME_WINDOW;		
+		time_window = DEFAULT_TIME_WINDOW;
+		model = new geomagModel();
 	}
 	
 	synchronized public void setTimeZone( float timeZone ) {
@@ -72,6 +78,7 @@ public class SolarInformation {
 		calendar.set(Calendar.YEAR, year);
 		calendar.set(Calendar.MONTH, month);
 		calendar.set(Calendar.DAY_OF_MONTH, day);
+		declination = Double.NEGATIVE_INFINITY;
 		recalculate = true;
 	}
 	
@@ -84,6 +91,7 @@ public class SolarInformation {
 	synchronized public void now() {
 		calendar = new GregorianCalendar();
 		time_zone   = (calendar.get(Calendar.ZONE_OFFSET) + calendar.get(Calendar.DST_OFFSET)) / 3600000.0f; // 1000 * 60 * 60
+		declination = Double.NEGATIVE_INFINITY;
 		recalculate = true;
 	}
 	
@@ -135,7 +143,10 @@ public class SolarInformation {
 			res = fShadowLength;
 			break;
 		case TIME_WINDOW_VALUE:
-			res = (float)time_window;
+			res = time_window;
+			break;
+		case DECLINATION_VALUE:
+			res = declination;
 			break;
 		default:
 			break;
@@ -446,6 +457,8 @@ public class SolarInformation {
 		t = Math.tan((90 - fAltitude) / 57.295779513082320876798154814105);
 		fShadowLength = Math.round(t * 100) / 100.0;
 
+		if ( declination == Double.NEGATIVE_INFINITY )
+			declination = model.getDeclination(latitude, longitude, instant);
 
 		recalculate = false;
 	}
