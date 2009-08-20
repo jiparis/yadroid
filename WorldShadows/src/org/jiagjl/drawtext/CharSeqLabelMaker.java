@@ -14,7 +14,8 @@ public class CharSeqLabelMaker extends LazyLabelMaker {
 	static public final String LOWERCASE_SEQ = buildSequence('a', 'z');
 	static public final String UPPERCASE_SEQ = buildSequence('A', 'Z');
 	static public final String ALFABET_SEQ = buildSequence('A', 'z');
-	static public final String COMPLETE_SEQ = buildSequence(' ', '~');
+	static public final String COMPLETE_SEQ = buildSequence(',', '~');
+//	static public final String COMPLETE_SEQ = buildSequence(' ', '9');
 
 	static public String buildSequence( char start, char end ) {
 		char[] sb = new char[end-start+1];
@@ -82,7 +83,9 @@ public class CharSeqLabelMaker extends LazyLabelMaker {
     	float width = 0.0f;
         int length = text.length();
         for(int i = 0; i < length; i++) {
-            width += mWidth[mFinder.getPosition(text.charAt(i))];
+        	int index = mFinder.getPosition(text.charAt(i));
+            if ( index >= 0 )
+            	width += mWidth[index];
         }
         return width;
     }

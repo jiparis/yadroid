@@ -73,7 +73,7 @@ public class LazyLabelMaker {
 			return;
 //		Log.i("reinitialize", "reinitialize");
 		int newStrikeWidth = roundUpPower2((int)maxTextSize);
-		int newStrikeHeight = size * roundUpPower2((int) mPaint.getFontSpacing());
+		int newStrikeHeight = roundUpPower2((int) mPaint.getFontSpacing() * size);
 		if ( lm == null ) {
 			strikeWidth = newStrikeWidth;
 			strikeHeight = newStrikeHeight;

@@ -27,6 +27,7 @@ import android.location.Location;
 import android.location.LocationManager;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.view.MotionEvent;
 
 public class ShadowsView extends GLBase {
 
@@ -91,7 +92,9 @@ public class ShadowsView extends GLBase {
 	NumericSprite mNumericSprite;
 	Paint mLabelPaint;
 	int mLabelNA;
-	int mLabelNE, mLabelSE, mLabelNW, mLabelSW, mLabelDot, mLabellocation, mLabelDate, mLabelRotation, mLabelShadow;
+	int mLabelNE, mLabelSE, mLabelNW, mLabelSW, mLabelDot, mLabellocation,
+			mLabelDate, mLabelRotation, mLabelShadow, mLabelHelp, mLabelView,
+			mLabelCompass, mLabel3D;
 	float[] qm = new float[16];
 	
 	int paused = 0;
@@ -113,12 +116,20 @@ public class ShadowsView extends GLBase {
 					yrot_aux = values[2];
 				} else if (paused == 2){
 					//Azimuth - z
+					rquad_aux = values[0];
+					//Pitch - x
+					xrot_aux = 0;
+					//Roll - y
+					yrot_aux = 0;	
+				} else if (paused == 3){
+					//Azimuth - z
 					rquad_aux = 0;
 					//Pitch - x
 					xrot_aux = 0;
 					//Roll - y
 					yrot_aux = 0;	
 				}
+
 
 			}
 	    }
@@ -259,18 +270,88 @@ public class ShadowsView extends GLBase {
         		date, 
         		(location == null ? "" : location),
 				(String) context.getText(R.string.txt_out_of_range),
-				(String) context.getText(R.string.txt_rotation),
+				(String) context.getText(R.string.txt_rotation_3d),
+				(String) context.getText(R.string.txt_rotation_paused),
+				(String) context.getText(R.string.txt_rotation_compass),
 				(String) context.getText(R.string.txt_rotation_0),
-				(String) context.getText(R.string.txt_shadow_length) });
+				(String) context.getText(R.string.txt_shadow_length),
+				(String) context.getText(R.string.txt_help),
+        		(String) context.getText(R.string.txt_view),
+        		});
         mLabelDate = 0;
         mLabellocation = 1;
         mLabelNA = 2;
-        mLabelRotation = 3;
-        mLabelShadow = 5;
+        mLabelRotation = 3;  //3D
+        					 //Paused
+        					 //Compass
+        					 //Not rotated
+        mLabelShadow = 7; 
+        mLabelHelp = 8;
+        mLabelView = 9;
 
     	must_init_labels = false;
 	}
 	
+	final float DEFAULT_PROP = 0.25f; 
+	final float MIN_PROP = 0.125f; 
+	final float MAX_PROP = 1f; 
+
+	float touchX, touchY;
+	float touchP;
+
+	float propX = DEFAULT_PROP, propY = DEFAULT_PROP;
+	float prop_iniX, prop_iniY;
+
+	long event_time;
+	
+    @Override
+	public boolean onTouchEvent( MotionEvent event ) {
+    	switch (event.getAction()) {
+		case MotionEvent.ACTION_DOWN:
+			event_time = System.currentTimeMillis();
+    		touchX = event.getX();
+    		touchY = event.getY();
+    		touchP = (MAX_PROP-MIN_PROP)/(width/4f);
+	    	Log.i("TOUCH", ""+event.getAction() );
+			break;
+
+		case MotionEvent.ACTION_MOVE:
+			if ( (System.currentTimeMillis()- event_time) < 175 )
+			{
+	    		touchX = event.getX();
+	    		touchY = event.getY();
+			} else {
+	    		float deltaX = event.getX() - touchX;
+	    		if ( Math.abs(deltaX) > 0.5 ) {
+	    			propX += deltaX*touchP;
+	    			propX = Math.min( propX, MAX_PROP);
+	    			propX = Math.max( propX, MIN_PROP);
+	        		touchX = event.getX();
+	    		}
+	    		float deltaY = event.getY() - touchY;
+	    		if ( Math.abs(deltaY) > 0.5 ) {
+	    			propY += deltaY*touchP;
+	    			propY = Math.min( propY, MAX_PROP);
+	    			propY = Math.max( propY, MIN_PROP);
+	        		touchY = event.getY();
+	    		}
+	        	Log.i("TOUCH", ""+event.getAction() + " - " + deltaX + " - " + deltaY + " - " + propX + " - " + propY );
+			}
+			break;
+
+		case MotionEvent.ACTION_UP:
+			if ( (System.currentTimeMillis()- event_time) < 175 ) {
+				paused_time = System.currentTimeMillis();
+				paused = (paused+1)%4;
+			}
+	    	Log.i("TOUCH", ""+event.getAction() + " - " + (System.currentTimeMillis()- event_time) );
+			break;
+			
+		default:
+			break;
+		}
+		return true;
+	}
 	
 	int frames = 0;
 	long time = System.currentTimeMillis();
@@ -284,18 +365,18 @@ public class ShadowsView extends GLBase {
 		}
 		initLabels(gl);
 		if (isPressed() && canPress){			
-			paused = (paused+1) % 3;
+			paused = (paused+1) % 4;
 			if ( paused == 1)
 				paused_time = System.currentTimeMillis();
 			canPress = false;
-		}		
+		}
 		if (!isPressed())
 			canPress = true;
 
 		softAngles();
 
 		//float[] sombra=solarInformation.calculateStripShadow(solarInformation.getCalendar());
-		float[] sombra=solarInformation.calculateRectangleShadow(solarInformation.getCalendar(),rquad);
+		float[] sombra=solarInformation.calculateRectangleShadow(solarInformation.getCalendar(),rquad, propX/2, propY/2);
 		shadowsBuff=makeFloatBuffer(sombra);
 
 		
@@ -353,6 +434,14 @@ public class ShadowsView extends GLBase {
 		// poste
 		gl.glPushMatrix();
 			gl.glLoadIdentity();					// Reset The View, loading the identity matrix
+			
+			
+//			gl.glPushMatrix(); {
+//				gl.glTranslatef(0, 0, 0.01f);
+//				drawShadow(gl);
+//			} gl.glPopMatrix();
+//
+			
 			gl.glTranslatef(0,0,-5); // center scene
 
 			//Rotación del poste en x e y
@@ -363,45 +452,61 @@ public class ShadowsView extends GLBase {
 			
 			gl.glColor4f(0, 0, 1, 1.0f);
 			gl.glTranslatef(0, 0, 0.5f);
-			gl.glScalef(0.25f, 0.25f, 1.0f);
+			gl.glScalef(propX, propY, 1.0f);
 			drawCube(gl);
 		gl.glPopMatrix();
 	
 		// sombra
 		gl.glPushMatrix();
-			synchronized (this) {
-				//Obtenemos la matriz de rotación simultanea en los 3 ejes
-//				Utils.quatToMatrix( qm, 0, Utils.eulerToQuat((float)(xrot*Math.PI/180.0), (float)(yrot*Math.PI/180.0), (float)(rquad*Math.PI/180.0)) );
-				Utils.quatToMatrix( qm, 0, Utils.eulerToQuat((float)(xrot*Math.PI/180.0), (float)(yrot*Math.PI/180.0), 0 ) );
-				//La aplicamos al modelo multiplicandola con OpenGL
-				gl.glMultMatrixf(qm, 0);
-			}
+			//Obtenemos la matriz de rotación simultanea en los 3 ejes
+			Utils.quatToMatrix( qm, 0, Utils.eulerToQuat((float)(xrot*Math.PI/180.0), (float)(yrot*Math.PI/180.0), 0 ) );
+			//La aplicamos al modelo multiplicandola con OpenGL
+			gl.glMultMatrixf(qm, 0);
+
 			gl.glTranslatef(0, 0, 0.01f);
+//			gl.glScalef(propX, propY, 0f);
+			
 			drawShadow(gl);
 		gl.glPopMatrix();
 		
+    	mMLabels.print(gl, (int)mLabelDate, MultiLabelMaker.HA_CENTER, MultiLabelMaker.VA_TOP );
+    	mMLabels.print(gl, " - ", MultiLabelMaker.HA_CENTER, MultiLabelMaker.VA_TOP );
+    	mMLabels.println(gl, solarInformation.getStringTime(SolarInformation.LOCAL_TIME), MultiLabelMaker.HA_CENTER, MultiLabelMaker.VA_TOP );
+    	
+    	if ( location != null )
+        	mMLabels.println(gl, mLabellocation, MultiLabelMaker.HA_CENTER, MultiLabelMaker.VA_TOP );
+    	else {
+    		float lat = Math.round((float)solarInformation.getValue(SolarInformation.LATITUDE_VALUE)*1000f)/1000f;
+    		float lon = Math.round((float)solarInformation.getValue(SolarInformation.LONGITUDE_VALUE)*1000f)/1000f;
+    		mMLabels.print(gl, lat, MultiLabelMaker.HA_CENTER, MultiLabelMaker.VA_TOP );
+    		mMLabels.print(gl, ", ", MultiLabelMaker.HA_CENTER, MultiLabelMaker.VA_TOP );
+    		mMLabels.println(gl, lon, MultiLabelMaker.HA_CENTER, MultiLabelMaker.VA_TOP );
+    	}
+
     	float shadow = (float)solarInformation.getValue(SolarInformation.SHADOW_LENGTH_VALUE);
     	mMLabels.print(gl, mLabelShadow, MultiLabelMaker.HA_CENTER, MultiLabelMaker.VA_TOP );
         if ( shadow > 20.0f )
         	mMLabels.println(gl, mLabelNA, MultiLabelMaker.HA_CENTER, MultiLabelMaker.VA_TOP );
         else  
         	mMLabels.println(gl, (float)Math.floor(shadow*1000)/1000f, MultiLabelMaker.HA_CENTER, MultiLabelMaker.VA_TOP );
-    	mMLabels.println(gl, (int)mLabelDate, MultiLabelMaker.HA_CENTER, MultiLabelMaker.VA_TOP );
-    	if ( location != null )
-        	mMLabels.println(gl, mLabellocation, MultiLabelMaker.HA_CENTER, MultiLabelMaker.VA_TOP );
-
-    	if ( paused != 0 ) {
+        
+    	if ( true || paused != 0 ) {
     		long delta = (System.currentTimeMillis() - paused_time);
     		long mod = delta % 1000;
-    		if ( /*delta > 10000 ||*/ mod < 500 ) {
-//            	mMLabels.println(gl, "", MultiLabelMaker.HA_CENTER, MultiLabelMaker.VA_TOP );
-    			mMLabels.println(gl, mLabelRotation+paused-1, MultiLabelMaker.HA_CENTER, MultiLabelMaker.VA_TOP );
+    		if ( /*delta > 10000 ||*/ mod < 500 || paused == 0 ) {
+            	mMLabels.print(gl, mLabelView, MultiLabelMaker.HA_CENTER, MultiLabelMaker.VA_TOP );
+    			mMLabels.println(gl, mLabelRotation+paused, MultiLabelMaker.HA_CENTER, MultiLabelMaker.VA_TOP );
     		}
     	}
 //    	if ( toggleDec > 0 )
 //    		mMLabels.println(gl, (long)toggleDec, MultiLabelMaker.HA_CENTER, MultiLabelMaker.VA_TOP );
 
-        mMLabels.flush(gl, mWidth, mHeight);
+    	mMLabels.println(gl, mLabelHelp, MultiLabelMaker.HA_CENTER, MultiLabelMaker.VA_DOWN );
+    	mMLabels.println(gl, " ", MultiLabelMaker.HA_CENTER, MultiLabelMaker.VA_DOWN );
+    	mMLabels.println(gl, " ", MultiLabelMaker.HA_CENTER, MultiLabelMaker.VA_DOWN );
+    	mMLabels.println(gl, " ", MultiLabelMaker.HA_CENTER, MultiLabelMaker.VA_DOWN );
+
+    	mMLabels.flush(gl, mWidth, mHeight);
         
 	}
 
@@ -510,12 +615,12 @@ public class ShadowsView extends GLBase {
 			float delta_log = delta;
 			
 			boolean discarded = true;
-			if ( (speed < 50f && delta != 0) || paused == 2 ) {
+			if ( (speed < 50f && delta != 0) || paused == 3 ) {
 				rquad_obj = (float)rquad_aux;
 				discarded = false;
-				if ( toggleDec == 1 && paused != 2 )
+				if ( toggleDec == 1 && paused != 3 )
 					rquad_obj -= solarInformation.getValue(SolarInformation.DECLINATION_VALUE);
-				if ( toggleDec == 2  && paused != 2 )
+				if ( toggleDec == 2  && paused != 3 )
 					rquad_obj += solarInformation.getValue(SolarInformation.DECLINATION_VALUE);
 			}
 			time = System.currentTimeMillis();
@@ -583,7 +688,7 @@ public class ShadowsView extends GLBase {
 			xrot = softenDegrees(Math.abs(xrot))*Math.signum(xrot);
 			yrot = softenDegrees(Math.abs(yrot))*Math.signum(yrot);
 
-			if ( paused != 2 )
+			if ( paused < 2 )
 				xrot = (toggleX?xrot-10f:xrot-20f);
 			
 //			Log.i("", xrot + " - " + yrot + " - " + rquad  );

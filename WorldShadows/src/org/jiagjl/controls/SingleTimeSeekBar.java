@@ -163,8 +163,8 @@ public class SingleTimeSeekBar extends SeekBar implements SeekBar.OnSeekBarChang
 		paint.setColor(Color.BLACK);
 		float text_width = paint.measureText(text);
 		x = x - (int)(text_width / 2f);
-		if ( x < 0 )
-			x = 0;
+		if ( x < 4 )
+			x = 4;
 		else if ( x + text_width > w )
 			x = w-(int)text_width;
 		

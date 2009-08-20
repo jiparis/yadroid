@@ -12,8 +12,13 @@
 	<string name="txt_sunrise">"Amanecer "</string>
 	<string name="txt_sunset">"Anochecer "</string>
 	<string name="txt_day_selection">Seleccione la fecha</string>
-	<string name="txt_rotation">Rotación en pausa</string>
+	<string name="txt_rotation_3d">3D</string>
+	<string name="txt_rotation_paused">Rotación en pausa</string>
+	<string name="txt_rotation_compass">Brújula</string>
 	<string name="txt_rotation_0">Sin rotación</string>
+	<string name="txt_view">"Vista: "</string>
+	<string name="txt_help">"Pulsar = Vista | Mover = Modelo"</string>
+
 	<string name="help_content">
 	\n
 	Esta aplicación muestra la sombra que genera el sol sobre un objeto determinado, para un día y una hora concreta.\n

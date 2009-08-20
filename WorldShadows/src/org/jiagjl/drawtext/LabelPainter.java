@@ -70,8 +70,9 @@ public class LabelPainter extends LazyLabelMaker {
 	
 	private void initTextLM() {
 		if ( textLM == null ) {
-			String seq = CharSeqLabelMaker.COMPLETE_SEQ;
-			String extra = "ÁÉÍÓÚáéíóúñÑ";
+			String seq = CharSeqLabelMaker.buildSequence(' ', '9');//CharSeqLabelMaker.COMPLETE_SEQ;
+//			String extra = "ÁÉÍÓÚáéíóúñÑ";
+			String extra = ":";
 			textLM = new CharSeqLabelMaker( seq+extra, new ExtraFinder(seq, extra), fullColor, mPaint );
 		}
 	}

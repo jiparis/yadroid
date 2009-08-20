@@ -21,6 +21,8 @@ public class SolarInformation {
 	final static public int SHADOW_LENGTH_VALUE = 6;
 	final static public int TIME_WINDOW_VALUE = 7;
 	final static public int DECLINATION_VALUE = 8;
+	final static public int LATITUDE_VALUE = 9;
+	final static public int LONGITUDE_VALUE = 10;
 
 	final static public int LOCAL_TIME = 100;
 	final static public int SOLAR_TIME = 101;
@@ -148,6 +150,12 @@ public class SolarInformation {
 		case DECLINATION_VALUE:
 			res = declination;
 			break;
+		case LATITUDE_VALUE:
+			res = latitude;
+			break;
+		case LONGITUDE_VALUE:
+			res = longitude;
+			break;
 		default:
 			break;
 		}
@@ -190,6 +198,36 @@ public class SolarInformation {
 		date.setMinutes(m);
 		return date;
 		
+	}
+	
+	synchronized public String getStringTime(int field) {
+		if ( recalculate )
+			compute(latitude, longitude, time_zone, calendar );
+		
+		double res = 0;
+		switch (field) {
+		case LOCAL_TIME:
+			res = fLocalTime;
+			break;
+		case SOLAR_TIME:
+			res = fSolarTime;
+			break;
+		case SUNRISE_TIME:
+			res = fSunrise;
+			break;
+		case SUNSET_TIME:
+			res = fSunset;
+			break;
+		default:
+			break;
+		}
+		int t = (int) Math.floor(res);
+		int m = (int) Math.floor((res - t) * 60.0);
+		
+		String minute, hour;
+		if (m < 10) minute = "0" + m; else minute = ""+m;
+		if (t < 10) hour = "0" + t; else hour = ""+t;
+		return hour + ":" + minute;
 	}
 	
 	synchronized public Calendar getCalendar() {
@@ -668,17 +706,18 @@ public class SolarInformation {
 //    }
 
 	
-	synchronized public float[] calculateRectangleShadow(Calendar instant, float rotation) {
+	synchronized public float[] calculateRectangleShadow(Calendar instant, float rotation, float offsetX, float offsetY ) {
         /*
          * La franja de sombra será descrita por cuatro puntos, el origen, la sombra en el instante pasado como parámetro
          *  y dos puntos que representan la sombra 5 minutos antes y después del instante pasado como parámetro.
          */
-		float offset=0.125f;
+		float offset=0.5f;
+//		float offset=0.125f;
 
-		float[] punto1=new float[]{offset,offset};
-		float[] punto2=new float[]{offset,-offset};
-		float[] punto3=new float[]{-offset,-offset};
-		float[] punto4=new float[]{-offset,offset};
+		float[] punto1=new float[]{offsetX,offsetY};
+		float[] punto2=new float[]{offsetX,-offsetY};
+		float[] punto3=new float[]{-offsetX,-offsetY};
+		float[] punto4=new float[]{-offsetX,offsetY};
 
 		float xy[] =calculatePointShadow(rotation);
 		float[] stripShadow=new float[12];
