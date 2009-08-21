@@ -28,6 +28,7 @@ import android.location.LocationManager;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
+import android.widget.Toast;
 
 public class ShadowsView extends GLBase {
 
@@ -154,38 +155,127 @@ public class ShadowsView extends GLBase {
     	Location loc = null;
     	if ( loc_mgr.isProviderEnabled(LocationManager.NETWORK_PROVIDER) ) {
         	loc = loc_mgr.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-    	} 
-//    	else 
-//    	if ( loc_mgr.isProviderEnabled(LocationManager.GPS_PROVIDER) ) {
-//        	loc = loc_mgr.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-//        }
-    	if ( loc != null ) {
-	    	solarInformation.setPosition(loc.getLatitude(), loc.getLongitude());
-	    	Log.i("LOCATION", loc.getLatitude() + " - " + loc.getLongitude() );
+        	if ( loc != null ) {
+    	    	solarInformation.setPosition(loc.getLatitude(), loc.getLongitude());
+    	    	new LocationFinder( loc.getLatitude(), loc.getLongitude() ).start();
+    	    	Log.i("LOCATION", loc.getLatitude() + " - " + loc.getLongitude() );
+        	}
+        	else {
+    			showToast(  new int[]{ R.string.msg_lp_no_location, -1, R.string.msg_lp_default } );
+            	new LocationFinder( Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY ).start();
+    	    	Log.i("LOCATION", "No location" );
+        	}
+        }
+    	else {
+			showToast(  new int[]{ R.string.msg_lp_disbled, -1, R.string.msg_lp_default } );
+        	new LocationFinder( Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY ).start();
     	}
-
-    	findLocation();
+    	
 	}
 
-	public void findLocation() {
-	    try {
-			Geocoder myLocation = new Geocoder(context, Locale.getDefault());   
-			List<Address> myList = myLocation.getFromLocation(SolarInformation.DEFAULT_LATITUDE, SolarInformation.DEFAULT_LONGITUDE, 1);
-			Address a = myList.get(0);
-			location = a.getLocality();
-			if ( location == null )
-				location = a.getAdminArea();
-			if ( location == null )
-				location = a.getCountryName();
-			else
-				location += ", " + a.getCountryName();
-			if ( location != null ) {
-				Log.i("findLocation", location);
-				must_init_labels = true;
-			}
-		} catch (IOException e) {
-			Log.e("Location", "Error", e);
+
+	class LocationFinder extends Thread {
+		double lat, lon;
+		boolean first = true;
+
+		public LocationFinder( double latitude, double longitude ) {
+    		lat = latitude;
+    		lon = longitude;
 		}
+
+		public void run() {
+			while ( location == null ) {
+				try {
+					Thread.sleep(1000);
+				}
+				catch (InterruptedException ex) {}
+				if ( lat == Double.NEGATIVE_INFINITY ) {
+					LocationManager loc_mgr = (LocationManager)context.getSystemService(Context.LOCATION_SERVICE);
+			    	Location loc = null;
+			    	if ( loc_mgr.isProviderEnabled(LocationManager.NETWORK_PROVIDER) ) {
+			        	loc = loc_mgr.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+			    	} 
+			    	if ( loc != null ) {
+			    		lat = loc.getLatitude();
+			    		lon = loc.getLongitude();
+				    	solarInformation.setPosition( lat, lon );
+						must_init_labels = true;
+		    			showToast( R.string.msg_lp_found );
+				    	Log.i("LOCATION", loc.getLatitude() + " - " + loc.getLongitude() );
+			    	}
+				} 
+				else {
+					List<Address> myList = null;
+					try {
+						Geocoder myLocation = new Geocoder(context, Locale.getDefault());
+						myList = myLocation.getFromLocation(lat, lon, 1);
+					} catch (IOException e) {
+					}
+					if ( myList != null ) {
+						Address a = myList.get(0);
+						location = a.getLocality();
+						if ( location == null )
+							location = a.getAdminArea();
+						if ( location == null )
+							location = a.getCountryName();
+						else
+							location += ", " + a.getCountryName();
+					}
+					if ( location != null ) {
+						must_init_labels = true;
+						showToast( new String[] { (String) context.getText( R.string.msg_lp_name_found ), null,  location } );
+						Log.i("findLocation", location);
+					} else if ( first ){
+						first = !first;
+						showToast(  new int[] { R.string.msg_lp_name_not_found, -1, R.string.msg_lp_try } );
+					}
+				}
+				try {
+					Thread.sleep(4000);
+				}
+				catch (InterruptedException ex) {}
+			}
+		}
+	}
+
+	private void showToast( int[] resourceIds ) {
+		String[] lines = new String[resourceIds.length];
+		for (int n = 0; n < resourceIds.length; n++ )
+			lines[n] = (resourceIds[n] == -1 ? null : (String) context.getText( resourceIds[n] ));
+		showToast(lines);
+	}
+
+	private void showToast( int resourceId ) {
+		showToast((String) context.getText( resourceId ) );
+	}
+	
+	
+	private static final String WS[] = { "", " ", "  ", "   ", "    ", "     ", "      ", "       ", "        ", "         ", "          " };
+	private void showToast( String[] lines ){
+		int max = 0;
+		for (int n = 0; n < lines.length; n++ )
+			if ( lines[n] != null && lines[n].length() > max )
+				max = lines[n].length();
+		String text = "";
+		for (int n = 0; n < lines.length; n++ ) {
+			if ( lines[n] != null && lines[n].length() > 0 ) {
+				int delta = Math.min( (int)Math.round( (max - lines[n].length()) / 2.0f + 0.5), WS.length-1 );
+				text += WS[delta] + lines[n] + (n != lines[n].length() ? "\n" : "" );
+			}
+			else {
+				text += (n != lines.length ? "\n" : "" );
+			}
+		}
+		showToast(text);
+	}
+	
+	private void showToast( final String text ){
+		post(new Runnable(){
+			@Override
+			public void run() {
+	        	Toast t = Toast.makeText(context, text, Toast.LENGTH_LONG);
+		    	t.show();
+			}});
 	}
 	
 	public ShadowsView(Context c, AttributeSet as){
@@ -353,16 +443,16 @@ public class ShadowsView extends GLBase {
 		return true;
 	}
 	
-	int frames = 0;
+//	int frames = 0;
 	long time = System.currentTimeMillis();
 	long paused_time = System.currentTimeMillis();
 	
     @Override
 	synchronized protected void drawFrame(GL10 gl) {
-		if ( location == null && frames++ > 100 ) {
-			findLocation();
-			frames = 0;
-		}
+//		if ( location == null && frames++ > 100 ) {
+//			findLocation();
+//			frames = 0;
+//		}
 		initLabels(gl);
 		if (isPressed() && canPress){			
 			paused = (paused+1) % 4;

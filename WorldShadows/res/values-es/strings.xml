@@ -7,6 +7,7 @@
 	<string name="menu_goto">Cambiar fecha</string>
 	<string name="menu_config">Preferencias</string>
 	<string name="menu_help">Ayuda</string>
+	
 	<string name="txt_out_of_range">Fuera de rango</string>
 	<string name="txt_shadow_length">"Longitud de sombra: "</string>
 	<string name="txt_sunrise">"Amanecer "</string>
@@ -17,7 +18,15 @@
 	<string name="txt_rotation_compass">Brújula</string>
 	<string name="txt_rotation_0">Sin rotación</string>
 	<string name="txt_view">"Vista: "</string>
-	<string name="txt_help">"Pulsar = Vista | Mover = Modelo"</string>
+	<string name="txt_help">"Pulsar pantalla = Vista | Mover = Modelo"</string>
+
+	<string name="msg_lp_default">"Localización por defecto: Sevilla, España"</string>
+	<string name="msg_lp_try">"Se reintentará cada 5 segundos"</string>
+	<string name="msg_lp_disbled">"El servicio de localización está deshabilitado"</string>
+	<string name="msg_lp_no_location">"No se puede encotrar la localización"</string>
+	<string name="msg_lp_found">"Localización encontrada. Intentando encontrar su nombre"</string>
+	<string name="msg_lp_name_found">"Nombre de la localización encontrado"</string>
+	<string name="msg_lp_name_not_found">"Nombre de la localización no encontrado"</string>
 
 	<string name="help_content">
 	\n
@@ -27,9 +36,7 @@
 	\n
 	Si la brújula no funciona correctamente o es inestable, oriente el teléfono de forma manual: seleccione el día y la hora actual, pulse en la pantalla (una o dos veces) para pausar la rotación de la escena, y mueva el teléfono móvil hasta que la sombra que ve en un objeto real tenga la misma dirección que la ve en la pantalla. Ahora mueva la barra de desplazamiento para ver la evolución de la sombra a lo largo del día.\n
 	\n
-	La conexión a internet sólo es necesaria para obtener la información sobre la localidad en la que se encuentra, y no afecta al correcto funcionamiento de los cálculos de la sobre.  
+	La conexión a internet sólo es necesaria para obtener la información sobre la localidad en la que se encuentra, y no afecta al correcto funcionamiento de los cálculos de la sobre.\n  
 	\n
-<!--	La longitud y la latitud no han de ser exactas para obtener un sombra aproximada, por lo que para su obtención se utiliza el método de menor precisión de los disponibles. 
--->	\n
 	</string>
 </resources>

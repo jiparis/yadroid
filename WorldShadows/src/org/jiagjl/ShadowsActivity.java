@@ -99,8 +99,29 @@ public class ShadowsActivity extends Activity implements DatePickerDialog.OnDate
 
         addContentView(ll, new LayoutParams
         		(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT));
+//        Message m = new Message();
+//        Bundle b = new Bundle();
+//        b.putString("TEXT", "Prueba");
+//        m.setData(b);
+//        new LooperThread().mHandler.sendMessage(m);
     }
 
+//    class LooperThread extends Thread {
+//        public Handler mHandler;
+//        
+//        public void run() {
+//            Looper.prepare();
+//            
+//            mHandler = new Handler() {
+//                public void handleMessage(Message msg) {
+//                	Toast.makeText(getApplicationContext(), msg.getData().getString("TEXT"), Toast.LENGTH_LONG ).show();
+//                }
+//            };
+//            
+//            Looper.loop();
+//        }
+//    }
+    
 	public void setTime( float startTime ) {
         if ( !mSingle )
         	((TimeSeekBar)timeSeekBar).setTime( startTime );
