@@ -24,7 +24,9 @@ import android.hardware.SensorManager;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
+import android.location.LocationListener;
 import android.location.LocationManager;
+import android.os.Bundle;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -136,7 +138,9 @@ public class ShadowsView extends GLBase {
 	    }
 	};
 	
-    String location;
+	LocationManager loc_mgr; 
+	LocationFinder loc_finder;
+	String location;
     
 	public ShadowsView(Context c) {
 		super(c, 5);
@@ -151,84 +155,130 @@ public class ShadowsView extends GLBase {
 
 		solarInformation=new SolarInformation();
 
-    	LocationManager loc_mgr = (LocationManager)context.getSystemService(Context.LOCATION_SERVICE);
-    	Location loc = null;
-    	if ( loc_mgr.isProviderEnabled(LocationManager.NETWORK_PROVIDER) ) {
-        	loc = loc_mgr.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-        	if ( loc != null ) {
-    	    	solarInformation.setPosition(loc.getLatitude(), loc.getLongitude());
-    	    	new LocationFinder( loc.getLatitude(), loc.getLongitude() ).start();
-    	    	Log.i("LOCATION", loc.getLatitude() + " - " + loc.getLongitude() );
-        	}
-        	else {
-    			showToast(  new int[]{ R.string.msg_lp_no_location, -1, R.string.msg_lp_default } );
-            	new LocationFinder( Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY ).start();
-    	    	Log.i("LOCATION", "No location" );
-        	}
-        }
-    	else {
-			showToast(  new int[]{ R.string.msg_lp_disbled, -1, R.string.msg_lp_default } );
-        	new LocationFinder( Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY ).start();
-    	}
+    	loc_mgr = (LocationManager)context.getSystemService(Context.LOCATION_SERVICE);
+//    	Location loc = null;
+//    	if ( loc_mgr.isProviderEnabled(LocationManager.NETWORK_PROVIDER) ) {
+//        	loc = loc_mgr.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+//        	if ( loc != null ) {
+//    	    	solarInformation.setPosition(loc.getLatitude(), loc.getLongitude());
+//    	    	loc_finder = new LocationFinder( loc.getLatitude(), loc.getLongitude() );
+//    	    	Log.i("LOCATION", loc.getLatitude() + " - " + loc.getLongitude() );
+//        	}
+//        	else {
+//    			showToast(  new int[]{ R.string.msg_lp_no_location, -1, R.string.msg_lp_default } );
+//    			loc_finder = new LocationFinder( Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY );
+//    	    	Log.i("LOCATION", "No location" );
+//        	}
+//        	loc_mgr.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0L, 0.0f, onLocationChange);
+//
+//        }
+//    	else {
+//			showToast(  new int[]{ R.string.msg_lp_disbled, -1, R.string.msg_lp_default } );
+//			loc_finder = new LocationFinder( Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY );
+//    	}
+		loc_finder = new LocationFinder();
     	
+	}
+
+
+    private final LocationListener onLocationChange = new LocationListener() {
+    	boolean first = true;
+		public void onLocationChanged(Location newlocation) {
+			if (newlocation != null) {
+	    		double lat = solarInformation.getValue(SolarInformation.LATITUDE_VALUE);
+	    		double lon = solarInformation.getValue(SolarInformation.LONGITUDE_VALUE);
+				double dist = Utils.distance(lat, lon, newlocation.getLatitude(), newlocation.getLongitude(), 'K');
+				if ( dist > 0.1 || first ) {
+					solarInformation.setPosition( newlocation.getLatitude(), newlocation.getLongitude() );
+					loc_finder.locateName( newlocation.getLatitude(), newlocation.getLongitude(), 10, false);
+					Log.i("onLocationChange","onLocationChange1");
+				}
+				Log.i("onLocationChange","onLocationChange");
+			}
+			loc_mgr.removeUpdates(this);
+//			if ( first ) {
+//				first = false;
+//				loc_mgr.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 60000*30L, 1000.0f, onLocationChange);
+//			}
+		}
+
+		public void onProviderDisabled(String provider) {
+		}
+
+		public void onProviderEnabled(String provider) {
+		}
+
+		public void onStatusChanged(String provider, int status, Bundle extras) {
+		}
+	}; 
+
+	
+	public String reverseLocation( double latitude, double longitude ) {
+		String res = null;
+		List<Address> myList = null;
+		try {
+			Geocoder myLocation = new Geocoder(context, Locale.getDefault());
+			myList = myLocation.getFromLocation(latitude, longitude, 1);
+		} catch (IOException e) {
+		}
+		if ( myList != null ) {
+			Address a = myList.get(0);
+			res = a.getLocality();
+			if ( res == null )
+				res = a.getAdminArea();
+			if ( res == null )
+				res = a.getCountryName();
+			else
+				res += ", " + a.getCountryName();
+		}
+		return res;
 	}
 
 
 	class LocationFinder extends Thread {
 		double lat, lon;
 		boolean first = true;
+		boolean stop = false;
+		boolean locate = false;
+		boolean show = false;
+		int retry = -1;
 
-		public LocationFinder( double latitude, double longitude ) {
+		public LocationFinder() {
+		}
+		
+		public void locateName( double latitude, double longitude, int retry, boolean showIfEqual ) {
     		lat = latitude;
     		lon = longitude;
+			this.retry = retry;
+			show = false;
+			locate = true;
 		}
-
+		
+		public void stopThread() {
+			stop = true;
+		}
+		
 		public void run() {
-			while ( location == null ) {
+			while ( !stop ) {
 				try {
 					Thread.sleep(1000);
 				}
 				catch (InterruptedException ex) {}
-				if ( lat == Double.NEGATIVE_INFINITY ) {
-					LocationManager loc_mgr = (LocationManager)context.getSystemService(Context.LOCATION_SERVICE);
-			    	Location loc = null;
-			    	if ( loc_mgr.isProviderEnabled(LocationManager.NETWORK_PROVIDER) ) {
-			        	loc = loc_mgr.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-			    	} 
-			    	if ( loc != null ) {
-			    		lat = loc.getLatitude();
-			    		lon = loc.getLongitude();
-				    	solarInformation.setPosition( lat, lon );
-						must_init_labels = true;
-		    			showToast( R.string.msg_lp_found );
-				    	Log.i("LOCATION", loc.getLatitude() + " - " + loc.getLongitude() );
-			    	}
-				} 
-				else {
-					List<Address> myList = null;
-					try {
-						Geocoder myLocation = new Geocoder(context, Locale.getDefault());
-						myList = myLocation.getFromLocation(lat, lon, 1);
-					} catch (IOException e) {
-					}
-					if ( myList != null ) {
-						Address a = myList.get(0);
-						location = a.getLocality();
-						if ( location == null )
-							location = a.getAdminArea();
-						if ( location == null )
-							location = a.getCountryName();
-						else
-							location += ", " + a.getCountryName();
-					}
-					if ( location != null ) {
-						must_init_labels = true;
-						showToast( new String[] { (String) context.getText( R.string.msg_lp_name_found ), null,  location } );
-						Log.i("findLocation", location);
-					} else if ( first ){
-						first = !first;
-						showToast(  new int[] { R.string.msg_lp_name_not_found, -1, R.string.msg_lp_try } );
-					}
+				if ( locate ){
+			    	Log.i("LOCATION", "Trying to find address" );
+			    	String loc = reverseLocation( lat, lon );
+					if ( loc != null ) {
+						if ( !loc.equals(location) ) {
+							location = loc;
+							locate = false;
+							must_init_labels = true;
+							showToast( new String[] { (String) context.getText( R.string.msg_lp_name_found ), null,  location } );
+							Log.i("findLocation", location);
+						} else if ( show ) {
+							showToast( new String[] { (String) context.getText( R.string.msg_lp_name_found ), null,  location } );
+						}
+						show = false;
+					} 
 				}
 				try {
 					Thread.sleep(4000);
@@ -260,7 +310,7 @@ public class ShadowsView extends GLBase {
 		for (int n = 0; n < lines.length; n++ ) {
 			if ( lines[n] != null && lines[n].length() > 0 ) {
 				int delta = Math.min( (int)Math.round( (max - lines[n].length()) / 2.0f + 0.5), WS.length-1 );
-				text += WS[delta] + lines[n] + (n != lines[n].length() ? "\n" : "" );
+				text += WS[delta] + WS[delta] + lines[n] + (n != lines[n].length() ? "\n" : "" );
 			}
 			else {
 				text += (n != lines.length ? "\n" : "" );
@@ -285,13 +335,18 @@ public class ShadowsView extends GLBase {
 	protected void registerSensors(){
 		SensorManager sm = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
         sm.registerListener(sl, SensorManager.SENSOR_ORIENTATION, SensorManager.SENSOR_DELAY_GAME);
+    	loc_finder.start();
+    	loc_mgr.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0L, 0.0f, onLocationChange);
 	}
 	
 	protected void unregisterSensors(){
 		SensorManager sm = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
         sm.unregisterListener(sl);
+    	loc_mgr.removeUpdates(onLocationChange);
+    	loc_finder.stopThread();
 	}
 
+	
 	@Override
 	protected void end(GL10 gl) {
 		super.end(gl);		

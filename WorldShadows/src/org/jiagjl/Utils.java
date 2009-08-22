@@ -9,6 +9,7 @@ import android.util.Log;
 public class Utils {
 
 	static final double TO_RAD_FACTOR = Math.PI/180;
+	static final double TO_DEG_FACTOR = 180/Math.PI;
 	
 	static public float normDegrees( float degrees ) {
 		degrees %= 360;
@@ -27,11 +28,31 @@ public class Utils {
         return degrees;
 	}
 
-	static public double toRadians( float degrees ) {
-        return degrees * TO_RAD_FACTOR;
+	static public double distance(double lat1, double lon1, double lat2, double lon2,
+			char unit) {
+		double theta = lon1 - lon2;
+		double dist = Math.sin(deg2rad(lat1)) * Math.sin(deg2rad(lat2))
+				+ Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2))
+				* Math.cos(deg2rad(theta));
+		dist = Math.acos(dist);
+		dist = rad2deg(dist);
+		dist = dist * 60 * 1.1515;
+		if (unit == 'K') {
+			dist = dist * 1.609344;
+		} else if (unit == 'N') {
+			dist = dist * 0.8684;
+		}
+		return (dist);
 	}
 
-	
+	static public double deg2rad(double deg) {
+		return (deg * TO_RAD_FACTOR);
+	}
+
+	static public double rad2deg(double rad) {
+		return (rad * TO_RAD_FACTOR);
+	}	
+		
 	static public float scaleFactor( float value, float factor, float from_min, float to_min, float to_max ) {
 		float res = factor * (value-from_min) + to_min;
 		if ( res < to_min )

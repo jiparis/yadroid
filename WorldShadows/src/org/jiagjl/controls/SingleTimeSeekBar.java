@@ -20,7 +20,7 @@ public class SingleTimeSeekBar extends SeekBar implements SeekBar.OnSeekBarChang
 	private float labelSizeHighlight = 24f;
 	private float textSize = labelSize;
 	
-	static final int MAX_PROGRESS = 100;
+	static final int MAX_PROGRESS = 200;
 	
 	public SingleTimeSeekBar(Context context, float minTime, float maxTime,
 			int minuteGap, ITimeBarCallback callback ) {
