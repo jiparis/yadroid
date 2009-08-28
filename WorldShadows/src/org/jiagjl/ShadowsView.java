@@ -336,7 +336,6 @@ public class ShadowsView extends GLBase {
 	
 	private void showToast( final String text ){
 		post(new Runnable(){
-			@Override
 			public void run() {
 	        	Toast t = Toast.makeText(context, text, Toast.LENGTH_LONG);
 		    	t.show();
