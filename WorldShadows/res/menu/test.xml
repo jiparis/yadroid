@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 	<item android:id="@+id/menu_now" android:title="@string/menu_now"
-		android:icon="@android:drawable/ic_menu_mylocation" />
+		android:icon="@android:drawable/ic_menu_today" />
 	<item android:id="@+id/menu_goto" android:title="@string/menu_goto"
-		android:icon="@android:drawable/ic_menu_edit" />
-	<!--  item android:id="@+id/menu_config" android:title="@string/menu_config"
-		android:icon="@android:drawable/ic_menu_preferences" / -->
+		android:icon="@android:drawable/ic_menu_my_calendar" />
+	<item android:id="@+id/menu_location" android:title="@string/menu_location"
+		android:icon="@android:drawable/ic_menu_mylocation" />
 	<item android:id="@+id/menu_help" android:title="@string/menu_help"
 		android:icon="@android:drawable/ic_menu_help" />
 </menu>

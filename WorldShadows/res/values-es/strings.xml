@@ -3,10 +3,12 @@
     
     <string name="app_name">aShadow Finder</string>
     <string name="app_title">Shadow Finder</string>
+    
     <string name="menu_now">Ahora</string>
 	<string name="menu_goto">Cambiar fecha</string>
 	<string name="menu_config">Preferencias</string>
 	<string name="menu_help">Ayuda</string>
+	<string name="menu_location">Mi ubicación</string>
 	
 	<string name="txt_out_of_range">Fuera de rango</string>
 	<string name="txt_shadow_length">"Longitud de sombra: "</string>
@@ -20,13 +22,15 @@
 	<string name="txt_view">"Vista: "</string>
 	<string name="txt_help">"Pulsar pantalla = Vista | Mover = Modelo"</string>
 
-	<string name="msg_lp_default">"Localización por defecto: Sevilla, España"</string>
+	<string name="msg_lp_default">"Ubicación por defecto: Sevilla, España"</string>
 	<string name="msg_lp_try">"Se reintentará cada 5 segundos"</string>
 	<string name="msg_lp_disbled">"El servicio de localización está deshabilitado"</string>
-	<string name="msg_lp_no_location">"No se puede encotrar la localización"</string>
-	<string name="msg_lp_found">"Localización encontrada. Intentando encontrar su nombre"</string>
-	<string name="msg_lp_name_found">"Nombre de la localización encontrado"</string>
-	<string name="msg_lp_name_not_found">"Nombre de la localización no encontrado"</string>
+	<string name="msg_lp_no_location">"No se puede encotrar la ubicación actual"</string>
+	<string name="msg_lp_found">"Ubicación encontrada. Intentando encontrar su nombre"</string>
+	<string name="msg_lp_name_found">"Nombre de la ubicación encontrado"</string>
+	<string name="msg_lp_name_not_found">"Nombre de la ubicación no encontrado"</string>
+	<string name="msg_lp_name_find">"Buscando ubicación actual ..."</string>
+	<string name="msg_lp_not_changed">"Ubicación sin cambios"</string>
 
 	<string name="help_content">
 	\n

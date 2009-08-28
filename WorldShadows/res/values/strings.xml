@@ -8,6 +8,7 @@
 	<string name="menu_goto">Change date</string>
 	<string name="menu_config">Preferences</string>
 	<string name="menu_help">Help</string>
+	<string name="menu_location">My location</string>
 	
 	<string name="txt_out_of_range">Out of range</string>
 	<string name="txt_shadow_length">"Shadow length: "</string>
@@ -28,6 +29,8 @@
 	<string name="msg_lp_found">"Location found. Now trying to find location name"</string>
 	<string name="msg_lp_name_found">"Location name found"</string>
 	<string name="msg_lp_name_not_found">"Location name not found"</string>
+	<string name="msg_lp_name_find">"Trying to find current location ..."</string>
+	<string name="msg_lp_not_changed">"Location unchanged"</string>
 	
 	<string name="help_content">
 	\n

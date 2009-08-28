@@ -18,19 +18,19 @@ import android.view.ViewGroup.LayoutParams;
 import android.widget.DatePicker;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class ShadowsActivity extends Activity implements DatePickerDialog.OnDateSetListener {
 	
     ShadowsView sv;
     View timeSeekBar;
     boolean mSingle = true;
-    
+
 	/** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setTitle(R.string.app_name);
-//        showDialog(PROGRESS_DIALOG);
         
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         LinearLayout ll = new LinearLayout(getApplicationContext());
@@ -99,28 +99,8 @@ public class ShadowsActivity extends Activity implements DatePickerDialog.OnDate
 
         addContentView(ll, new LayoutParams
         		(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT));
-//        Message m = new Message();
-//        Bundle b = new Bundle();
-//        b.putString("TEXT", "Prueba");
-//        m.setData(b);
-//        new LooperThread().mHandler.sendMessage(m);
     }
 
-//    class LooperThread extends Thread {
-//        public Handler mHandler;
-//        
-//        public void run() {
-//            Looper.prepare();
-//            
-//            mHandler = new Handler() {
-//                public void handleMessage(Message msg) {
-//                	Toast.makeText(getApplicationContext(), msg.getData().getString("TEXT"), Toast.LENGTH_LONG ).show();
-//                }
-//            };
-//            
-//            Looper.loop();
-//        }
-//    }
     
 	public void setTime( float startTime ) {
         if ( !mSingle )
@@ -226,6 +206,10 @@ public class ShadowsActivity extends Activity implements DatePickerDialog.OnDate
 //        case R.id.menu_config:
 //        	sv.toggleDec = (sv.toggleDec+1)%3; 
 //        	return true;        
+        case R.id.menu_location:
+        	Toast.makeText(this, getText(R.string.msg_lp_name_find), Toast.LENGTH_SHORT).show();
+        	sv.startSearchLocation();
+        	return true;
         case R.id.menu_help:
             showDialog(HELP_DIALOG);
         	return true;
@@ -268,11 +252,6 @@ public class ShadowsActivity extends Activity implements DatePickerDialog.OnDate
         case DIALOG_DATEPICKER:
             d = new DatePickerDialog(ShadowsActivity.this, this, 2008, 1, 1);
             d.setTitle(getText(R.string.txt_day_selection));
-            break;
-        case PROGRESS_DIALOG:
-//            d = new ProgressDialog(ShadowsActivity.this);
-////            ProgressDialog.show(getApplicationContext(), "", "Loading. Please wait...", true);
-//            ((ProgressDialog)d).setMessage("Loading. Please wait...");
             break;
         case HELP_DIALOG:
           d = new Dialog(ShadowsActivity.this);
