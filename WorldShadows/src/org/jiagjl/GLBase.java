@@ -284,42 +284,47 @@ public abstract class GLBase extends SurfaceView implements SurfaceHolder.Callba
 	{
 	 GLDrawEllipse(gl, circleSegments, circleSize, circleSize, centerx, centery, filled);
 	}
+
 	
+	FloatBuffer cubeBuff = null;
+
+	float box[] = new float[] {
+			// FRONT
+			-0.5f, -0.5f,  0.5f,
+			 0.5f, -0.5f,  0.5f,
+			-0.5f,  0.5f,  0.5f,
+			 0.5f,  0.5f,  0.5f,
+			// BACK
+			-0.5f, -0.5f, -0.5f,
+			-0.5f,  0.5f, -0.5f,
+			 0.5f, -0.5f, -0.5f,
+			 0.5f,  0.5f, -0.5f,
+			// LEFT
+			-0.5f, -0.5f,  0.5f,
+			-0.5f,  0.5f,  0.5f,
+			-0.5f, -0.5f, -0.5f,
+			-0.5f,  0.5f, -0.5f,
+			// RIGHT
+			 0.5f, -0.5f, -0.5f,
+			 0.5f,  0.5f, -0.5f,
+			 0.5f, -0.5f,  0.5f,
+			 0.5f,  0.5f,  0.5f,
+			// TOP
+			-0.5f,  0.5f,  0.5f,
+			 0.5f,  0.5f,  0.5f,
+			 -0.5f,  0.5f, -0.5f,
+			 0.5f,  0.5f, -0.5f,
+			// BOTTOM
+			-0.5f, -0.5f,  0.5f,
+			-0.5f, -0.5f, -0.5f,
+			 0.5f, -0.5f,  0.5f,
+			 0.5f, -0.5f, -0.5f,
+		};
+
 	public void drawCube(GL10 gl){
-		float box[] = new float[] {
-				// FRONT
-				-0.5f, -0.5f,  0.5f,
-				 0.5f, -0.5f,  0.5f,
-				-0.5f,  0.5f,  0.5f,
-				 0.5f,  0.5f,  0.5f,
-				// BACK
-				-0.5f, -0.5f, -0.5f,
-				-0.5f,  0.5f, -0.5f,
-				 0.5f, -0.5f, -0.5f,
-				 0.5f,  0.5f, -0.5f,
-				// LEFT
-				-0.5f, -0.5f,  0.5f,
-				-0.5f,  0.5f,  0.5f,
-				-0.5f, -0.5f, -0.5f,
-				-0.5f,  0.5f, -0.5f,
-				// RIGHT
-				 0.5f, -0.5f, -0.5f,
-				 0.5f,  0.5f, -0.5f,
-				 0.5f, -0.5f,  0.5f,
-				 0.5f,  0.5f,  0.5f,
-				// TOP
-				-0.5f,  0.5f,  0.5f,
-				 0.5f,  0.5f,  0.5f,
-				 -0.5f,  0.5f, -0.5f,
-				 0.5f,  0.5f, -0.5f,
-				// BOTTOM
-				-0.5f, -0.5f,  0.5f,
-				-0.5f, -0.5f, -0.5f,
-				 0.5f, -0.5f,  0.5f,
-				 0.5f, -0.5f, -0.5f,
-			};
 		
-		FloatBuffer cubeBuff = makeFloatBuffer(box);		
+		if ( cubeBuff == null )
+		    cubeBuff = makeFloatBuffer(box);		
 		
 		gl.glVertexPointer(3, GL10.GL_FLOAT, 0, cubeBuff);
 

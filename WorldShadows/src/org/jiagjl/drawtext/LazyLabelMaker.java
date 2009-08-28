@@ -4,7 +4,6 @@ package org.jiagjl.drawtext;
 import javax.microedition.khronos.opengles.GL10;
 
 import android.graphics.Paint;
-import android.util.Log;
 
 public class LazyLabelMaker {
 

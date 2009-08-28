@@ -21,6 +21,8 @@
 	<string name="txt_rotation_0">Not rotated</string>
 	<string name="txt_view">"View: "</string>
 	<string name="txt_help">"Touch = Change view | Move = Model size"</string>
+	<string name="txt_move_slider">"Move the slider to select the time"</string>
+	<string name="txt_move_slider_1">""</string>
 	
 	<string name="msg_lp_default">"Default location: Seville, Spain"</string>
 	<string name="msg_lp_try">"Will try every 5 seconds"</string>

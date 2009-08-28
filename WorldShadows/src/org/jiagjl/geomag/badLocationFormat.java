@@ -6,6 +6,7 @@
 package org.jiagjl.geomag;
 
 
+@SuppressWarnings("serial")
 public class badLocationFormat extends RuntimeException
 {
 

@@ -140,17 +140,20 @@ public class ShadowsActivity extends Activity implements DatePickerDialog.OnDate
     // activity stopped and restarted
     @Override
     protected void onRestart(){
+//		Log.i("onRestart", "onRestart");
     	super.onRestart();
     }
     
 	@Override
 	protected void onStart() {
+//		Log.i("onStart", "onStart");
 		super.onStart();
 	}
 
 	// Visible
 	@Override
 	protected void onResume() {		
+//		Log.i("onResume", "onResume");
 		super.onResume();
 		sv.registerSensors();
 	}
@@ -158,6 +161,7 @@ public class ShadowsActivity extends Activity implements DatePickerDialog.OnDate
 	// focus lost
 	@Override
 	protected void onPause() {
+//		Log.i("onPause", "onPause: " + isFinishing() );
 		super.onPause();
 		sv.unregisterSensors();
 	}
@@ -165,6 +169,7 @@ public class ShadowsActivity extends Activity implements DatePickerDialog.OnDate
 	// invisible
 	@Override
 	protected void onStop() {
+//		Log.i("onStop", "onStop: " + isFinishing());
 		super.onStop();
 		
 	}
@@ -172,7 +177,7 @@ public class ShadowsActivity extends Activity implements DatePickerDialog.OnDate
 	// back button or destroyed by system
 	@Override
 	protected void onDestroy() {
-		// TODO Auto-generated method stub
+//		Log.i("onDestroy", "onDestroy: " + isFinishing() );
 		super.onDestroy();
 	}
 

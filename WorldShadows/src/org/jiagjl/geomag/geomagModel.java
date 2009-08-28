@@ -14,19 +14,24 @@ public class geomagModel {
 	public static final int MAX_MODEL_DEGREE = 13;
 	public static final int MODEL_ALLOC_SIZE = 14;
 	private static final double toRadians = 0.01745329252D;
+	@SuppressWarnings("unused")
 	private static final double GoldenLat = 39.75D;
+	@SuppressWarnings("unused")
 	private static final double GoldenLon = 105.20829999999999D;
 	private static final double gmYearMin = 1600D;
 	private static final double gmYearMax = 2050D;
 	private static final double gmElevMinM = -200000D;
 	private static final double gmElevMaxM = 1000000D;
+	@SuppressWarnings("unused")
 	private static final double E_RADIUS_KM_EQUAT = 6378.1369999999997D;
+	@SuppressWarnings("unused")
 	private static final double E_RADIUS_KM_POLAR = 6356.7523142D;
 	private static final double re = 6371.1999999999998D;
 	private static final double E_RAD_EQUA_SQUARE = 40680631.590768993D;
 	private static final double E_RAD_POLE_SQUARE = 40408299.984087057D;
 	private static final double E_RAD_DIFF_SQUARE = 272331.60668193549D;
 	private static final double E_RAD_EQUA_QUAD = 1654913786623872.2D;
+	@SuppressWarnings("unused")
 	private static final double E_RAD_POLE_QUAD = 1632830707603970D;
 	private static final double E_RAD_DIFF_QUAD = 22083079019902.25D;
 	boolean myStatus;

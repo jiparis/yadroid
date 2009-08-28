@@ -1,7 +1,6 @@
 package org.jiagjl.drawtext;
 
 import java.util.Arrays;
-import java.util.Vector;
 
 import javax.microedition.khronos.opengles.GL10;
 
@@ -16,9 +15,15 @@ public class MultiLabelMaker extends LabelPainter {
 
 //    float viewHeightR;
     
-	Vector<Long> vl = new Vector<Long>();
-	Vector<Float> vf = new Vector<Float>();
-	Vector<String> vt = new Vector<String>();
+//	Vector<Long> vl = new Vector<Long>();
+//	Vector<Float> vf = new Vector<Float>();
+//	Vector<String> vt = new Vector<String>();
+	long[] vl = new long[10];
+	float[] vf = new float[10];
+	String[] vt = new String[10];
+	int vl_pos = 0;
+	int vf_pos = 0;
+	int vt_pos = 0;
 	
     
 	public MultiLabelMaker(boolean fullColor, Paint paint ) {
@@ -76,14 +81,14 @@ public class MultiLabelMaker extends LabelPainter {
 
 	public void print( GL10 gl, long number, int hAlign, int vAlign ) {
 		getLongLM().reinitialize(gl);
-		vl.add( new Long(number));
-		print( gl, LONG_TYPE, vl.size()-1, hAlign, vAlign );
+		vl[vl_pos++] = number;
+		print( gl, LONG_TYPE, vl_pos-1, hAlign, vAlign );
     }
 
 	public void print( GL10 gl, float number, int hAlign, int vAlign ) {
 		getFloatLM().reinitialize(gl);
-		vf.add( new Float(number));
-		print( gl, FLOAT_TYPE, vf.size()-1, hAlign, vAlign );
+		vf[vf_pos++] = number;
+		print( gl, FLOAT_TYPE, vf_pos-1, hAlign, vAlign );
     }
 
 	public void print( GL10 gl, String text, int hAlign, int vAlign ) {
@@ -96,8 +101,8 @@ public class MultiLabelMaker extends LabelPainter {
 				next = text.substring( pos+1 );
 				text = text.substring( 0, pos );
 			}
-			vt.add( text );
-			print( gl, TEXT_TYPE, vt.size()-1, hAlign, vAlign );
+			vt[vt_pos++] = text;
+			print( gl, TEXT_TYPE, vt_pos-1, hAlign, vAlign );
 			if ( pos != -1 )
 				print( gl, NEW_LINE, hAlign, vAlign );
 			text = next;
@@ -164,7 +169,7 @@ public class MultiLabelMaker extends LabelPainter {
 //		float viewHeightR = viewHeight - maxHeight;
     	beginDrawing(gl, viewWidth, viewHeight);
     	for( int n = 0; n < 3; n++ )
-        	for( int m = 0; m < 3; m++ ) 
+        	for( int m = 0; m < 3; m++ )
         		if (l[n][m] != -1 ) {
         			float x1 = viewWidth * mw[n][0];
         			float y = viewHeight * mh[m][0] + ((l[n][m]+1)*maxHeight)*mh[m][1];
@@ -182,14 +187,18 @@ public class MultiLabelMaker extends LabelPainter {
 	        				}
 		            	}
 	            	}
+        			l[n][m] = -1;
         		}
     	endDrawing(gl);
-		Arrays.fill( l[0], -1 );
-		Arrays.fill( l[1], -1 );
-		Arrays.fill( l[2], -1 );
-		vf.clear();
-		vl.clear();
-		vt.clear();
+//		Arrays.fill( l[0], -1 );
+//		Arrays.fill( l[1], -1 );
+//		Arrays.fill( l[2], -1 );
+    	vf_pos = 0;
+    	vl_pos = 0;
+    	vt_pos = 0;
+//		vf.clear();
+//		vl.clear();
+//		vt.clear();
     }
 
     public void beginDrawing(GL10 gl, float viewWidth, float viewHeight) {
@@ -220,17 +229,17 @@ public class MultiLabelMaker extends LabelPainter {
 			res = mWidth[command];
 			break;
 		case LONG_TYPE:
-			long valuel = vl.get(command).longValue();
+			long valuel = vl[command];
 			draw( gl, x, y, 0, valuel );
 			res = getWidth(gl, valuel);
 			break;
 		case FLOAT_TYPE:
-			float valuef = vf.get(command).floatValue();
+			float valuef = vf[command];
 			draw( gl, x, y, 0, valuef );
 			res = getWidth(gl, valuef);
 			break;
 		case TEXT_TYPE:
-			String valuet = vt.get(command);
+			String valuet = vt[command];
 			draw( gl, x, y, 0, valuet );
 			res = getWidth(gl, valuet);
 			break;
@@ -247,15 +256,15 @@ public class MultiLabelMaker extends LabelPainter {
 			res = mWidth[command];
 			break;
 		case LONG_TYPE:
-			long valuel = vl.get(command).longValue();
+			long valuel = vl[command];
 			res = getWidth(gl, valuel);
 			break;
 		case FLOAT_TYPE:
-			float valuef = vf.get(command).floatValue();
+			float valuef = vf[command];
 			res = getWidth(gl, valuef);
 			break;
 		case TEXT_TYPE:
-			String valuet = vt.get(command);
+			String valuet = vt[command];
 			res = getWidth(gl, valuet);
 			break;
 		default:

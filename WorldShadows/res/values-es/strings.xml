@@ -21,6 +21,8 @@
 	<string name="txt_rotation_0">Sin rotación</string>
 	<string name="txt_view">"Vista: "</string>
 	<string name="txt_help">"Pulsar pantalla = Vista | Mover = Modelo"</string>
+	<string name="txt_move_slider">"Mueva la barra de desplazamiento"</string>
+	<string name="txt_move_slider_1">"para cambiar la hora"</string>
 
 	<string name="msg_lp_default">"Ubicación por defecto: Sevilla, España"</string>
 	<string name="msg_lp_try">"Se reintentará cada 5 segundos"</string>

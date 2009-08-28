@@ -28,7 +28,9 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
+import android.view.SurfaceHolder;
 import android.widget.Toast;
 
 public class ShadowsView extends GLBase {
@@ -146,7 +148,7 @@ public class ShadowsView extends GLBase {
 	String location;
     
 	public ShadowsView(Context c) {
-		super(c, 5);
+		super(c, 0);
 		
 		quadBuff = makeFloatBuffer(quad);
 		texBuff = makeFloatBuffer(texCoords);
@@ -334,6 +336,11 @@ public class ShadowsView extends GLBase {
 		showToast(text);
 	}
 	
+	public void surfaceDestroyed(SurfaceHolder arg0) {
+		super.surfaceDestroyed(arg0);
+		Log.i("surfaceDestroyed", "surfaceDestroyed");
+	}
+	
 	private void showToast( final String text ){
 		post(new Runnable(){
 			public void run() {
@@ -352,7 +359,8 @@ public class ShadowsView extends GLBase {
 		SensorManager sm = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
         sm.registerListener(sl, SensorManager.SENSOR_ORIENTATION, SensorManager.SENSOR_DELAY_GAME);
 
-        startSearchLocation();
+        if ( location == null )
+        	startSearchLocation();
 	}
 	
 	protected void unregisterSensors(){
@@ -525,19 +533,25 @@ public class ShadowsView extends GLBase {
 		return true;
 	}
 	
-	long time = System.currentTimeMillis();
+//	long time = System.currentTimeMillis();
 	long paused_time = System.currentTimeMillis();
+	boolean first = true;
 	
     @Override
 	protected void drawFrame(GL10 gl) {
-		initLabels(gl);
+//    	Utils.startLogTime(0, "drawFrame");
 
-		softAngles();
+    	initLabels(gl);
 
-		//float[] sombra=solarInformation.calculateStripShadow(solarInformation.getCalendar());
-		float[] sombra=solarInformation.calculateRectangleShadow(solarInformation.getCalendar(),rquad, propX/2, propY/2);
+    	softAngles();
+
+		float[] sombra=solarInformation.calculateRectangleShadow(rquad, propX/2, propY/2);
 		shadowsBuff=makeFloatBuffer(sombra);
 
+		if ( first && sombra.length == 2 ) {
+    		first = !first;
+    		showToast( new int[] {R.string.txt_shadow_length, R.string.txt_out_of_range, -1, R.string.txt_move_slider, R.string.txt_move_slider_1} );
+    	}
 		
 		gl.glClear(GL10.GL_COLOR_BUFFER_BIT | GL10.GL_DEPTH_BUFFER_BIT);	// Clear The Screen And The Depth Buffer
 		gl.glMatrixMode(GL10.GL_MODELVIEW);		
@@ -605,6 +619,8 @@ public class ShadowsView extends GLBase {
 			drawShadow(gl);
 		gl.glPopMatrix();
 		
+//    	Utils.logTime(0, "drawFrame model");
+
     	mMLabels.print(gl, (int)mLabelDate, MultiLabelMaker.HA_CENTER, MultiLabelMaker.VA_TOP );
     	mMLabels.print(gl, " - ", MultiLabelMaker.HA_CENTER, MultiLabelMaker.VA_TOP );
     	mMLabels.println(gl, solarInformation.getStringTime(SolarInformation.LOCAL_TIME), MultiLabelMaker.HA_CENTER, MultiLabelMaker.VA_TOP );
@@ -621,7 +637,7 @@ public class ShadowsView extends GLBase {
 
     	float shadow = (float)solarInformation.getValue(SolarInformation.SHADOW_LENGTH_VALUE);
     	mMLabels.print(gl, mLabelShadow, MultiLabelMaker.HA_CENTER, MultiLabelMaker.VA_TOP );
-        if ( shadow > 20.0f )
+        if ( shadow == 0 )
         	mMLabels.println(gl, mLabelNA, MultiLabelMaker.HA_CENTER, MultiLabelMaker.VA_TOP );
         else  
         	mMLabels.println(gl, (float)Math.floor(shadow*1000)/1000f, MultiLabelMaker.HA_CENTER, MultiLabelMaker.VA_TOP );
@@ -634,16 +650,14 @@ public class ShadowsView extends GLBase {
     			mMLabels.println(gl, mLabelRotation+paused, MultiLabelMaker.HA_CENTER, MultiLabelMaker.VA_TOP );
     		}
     	}
-//    	if ( toggleDec > 0 )
-//    		mMLabels.println(gl, (long)toggleDec, MultiLabelMaker.HA_CENTER, MultiLabelMaker.VA_TOP );
 
     	mMLabels.println(gl, mLabelHelp, MultiLabelMaker.HA_CENTER, MultiLabelMaker.VA_DOWN );
-    	mMLabels.println(gl, " ", MultiLabelMaker.HA_CENTER, MultiLabelMaker.VA_DOWN );
-    	mMLabels.println(gl, " ", MultiLabelMaker.HA_CENTER, MultiLabelMaker.VA_DOWN );
-    	mMLabels.println(gl, " ", MultiLabelMaker.HA_CENTER, MultiLabelMaker.VA_DOWN );
+    	mMLabels.print(gl, MultiLabelMaker.NEW_LINE, MultiLabelMaker.HA_CENTER, MultiLabelMaker.VA_DOWN );
+    	mMLabels.print(gl, MultiLabelMaker.NEW_LINE, MultiLabelMaker.HA_CENTER, MultiLabelMaker.VA_DOWN );
+    	mMLabels.print(gl, MultiLabelMaker.NEW_LINE, MultiLabelMaker.HA_CENTER, MultiLabelMaker.VA_DOWN );
 
     	mMLabels.flush(gl, mWidth, mHeight);
-        
+//    	Utils.logTime(0, "drawFrame labels");
 	}
 
     private void rotate( GL10 gl, float x, float y, float z ) {
@@ -773,7 +787,7 @@ public class ShadowsView extends GLBase {
 			if ( toggleDec == 2  && paused != 3 )
 				rquad_obj += solarInformation.getValue(SolarInformation.DECLINATION_VALUE);
 		}
-		time = System.currentTimeMillis();
+//		time = System.currentTimeMillis();
 		rquad_aux_prev = rquad_aux;
 
 		float inc = 1;
