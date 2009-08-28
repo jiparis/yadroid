@@ -8,8 +8,8 @@ import android.util.Log;
 
 public class Utils {
 
-	static final double TO_RAD_FACTOR = Math.PI/180;
-	static final double TO_DEG_FACTOR = 180/Math.PI;
+	static final double TO_RAD_FACTOR = Math.PI/180.0;
+	static final double TO_DEG_FACTOR = 180.0/Math.PI;
 	
 	static public float normDegrees( float degrees ) {
 		degrees %= 360;
@@ -172,4 +172,40 @@ public class Utils {
 		gl.getMatrix(matrix, 0);
 		dumpMatrix( matrix, 0, "Rotacion Roll - Z" );
 	}
+	
+    static long time[] = new long[10];
+    static {
+    	time[0] = System.currentTimeMillis(); 
+    }
+    static int t_pos = 0;
+    static String[] pad = new String[10];
+    static {
+    	pad[0] = "";
+    	for ( int n = 1; n < pad.length; n++ )
+    		pad[n] = pad[n-1] + " ";
+    }
+    
+    static public void startLogTime(int log, String where) {
+    	long t = System.currentTimeMillis();
+        time[log] = t;
+        Log.i("TIME_START_" + log, pad[log] + where );
+    }
+
+    static public void logTime(int log, String where) {
+    	long t = System.currentTimeMillis();
+        Log.i("TIME_" + log, pad[log] + where + " - " + (t-time[log]) );
+        time[log] = t;
+    }
+
+    static public void pushTime(String where) {
+    	++t_pos;
+    	startLogTime(t_pos, where);
+    }
+    
+    static public void popTime(String where) {
+        logTime(t_pos, where);
+    	--t_pos;
+    }
+    
+
 }
