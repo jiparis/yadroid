@@ -28,7 +28,6 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.widget.Toast;
 
@@ -76,6 +75,10 @@ public class ShadowsView extends GLBase {
 	float yrot = 0.0f;
 	float xrot_aux = 0.0f;
 	float yrot_aux = 0.0f;
+
+	float rquad_aux_call; 
+	float xrot_aux_call = 0.0f;
+	float yrot_aux_call = 0.0f;
 	
 	int compassTex;
 	int worldTex;
@@ -109,28 +112,28 @@ public class ShadowsView extends GLBase {
 		}
 
 		public void onSensorChanged(int sensor, float[] values) {
-			synchronized (ShadowsView.this) {
+			synchronized (ShadowsView.this.sl) {
 				if (paused == 0){
 					//Azimuth - z
-					rquad_aux = values[0];
+					rquad_aux_call = values[0];
 					//Pitch - x
-					xrot_aux = values[1];
+					xrot_aux_call = values[1];
 					//Roll - y
-					yrot_aux = values[2];
+					yrot_aux_call = values[2];
 				} else if (paused == 2){
 					//Azimuth - z
-					rquad_aux = values[0];
+					rquad_aux_call = values[0];
 					//Pitch - x
-					xrot_aux = 0;
+					xrot_aux_call = 0;
 					//Roll - y
-					yrot_aux = 0;	
+					yrot_aux_call = 0;	
 				} else if (paused == 3){
 					//Azimuth - z
-					rquad_aux = 0;
+					rquad_aux_call = 0;
 					//Pitch - x
-					xrot_aux = 0;
+					xrot_aux_call = 0;
 					//Roll - y
-					yrot_aux = 0;	
+					yrot_aux_call = 0;	
 				}
 
 
@@ -144,6 +147,7 @@ public class ShadowsView extends GLBase {
     
 	public ShadowsView(Context c) {
 		super(c, 5);
+		
 		quadBuff = makeFloatBuffer(quad);
 		texBuff = makeFloatBuffer(texCoords);
 		worldBuff = makeFloatBuffer(worldCoords);
@@ -174,9 +178,8 @@ public class ShadowsView extends GLBase {
 //        }
 //    	else {
 //			showToast(  new int[]{ R.string.msg_lp_disbled, -1, R.string.msg_lp_default } );
-//			loc_finder = new LocationFinder( Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY );
+//			 = new LocationFinder( Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY );
 //    	}
-		loc_finder = new LocationFinder();
     	
 	}
 
@@ -191,15 +194,13 @@ public class ShadowsView extends GLBase {
 				if ( dist > 0.1 || first ) {
 					solarInformation.setPosition( newlocation.getLatitude(), newlocation.getLongitude() );
 					loc_finder.locateName( newlocation.getLatitude(), newlocation.getLongitude(), 10, false);
-					Log.i("onLocationChange","onLocationChange1");
 				}
-				Log.i("onLocationChange","onLocationChange");
+				else
+					showToast(R.string.msg_lp_not_changed);
 			}
+			else
+				showToast( "Hola" );
 			loc_mgr.removeUpdates(this);
-//			if ( first ) {
-//				first = false;
-//				loc_mgr.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 60000*30L, 1000.0f, onLocationChange);
-//			}
 		}
 
 		public void onProviderDisabled(String provider) {
@@ -246,7 +247,7 @@ public class ShadowsView extends GLBase {
 		public LocationFinder() {
 		}
 		
-		public void locateName( double latitude, double longitude, int retry, boolean showIfEqual ) {
+		synchronized public void locateName( double latitude, double longitude, int retry, boolean showIfEqual ) {
     		lat = latitude;
     		lon = longitude;
 			this.retry = retry;
@@ -264,22 +265,24 @@ public class ShadowsView extends GLBase {
 					Thread.sleep(1000);
 				}
 				catch (InterruptedException ex) {}
-				if ( locate ){
-			    	Log.i("LOCATION", "Trying to find address" );
-			    	String loc = reverseLocation( lat, lon );
-					if ( loc != null ) {
-						if ( !loc.equals(location) ) {
-							location = loc;
+				synchronized (this) {
+					if ( locate ){
+				    	String loc = reverseLocation( lat, lon );
+						if ( loc != null ) {
+							if ( !loc.equals(location) ) {
+								location = loc;
+								must_init_labels = true;
+//								showToast( new String[] { (String) context.getText( R.string.msg_lp_name_found ), null,  location } );
+	//							Log.i("findLocation", location);
+							} else if ( show ) {
+//								showToast( new String[] { (String) context.getText( R.string.msg_lp_name_found ), null,  location } );
+							}
 							locate = false;
-							must_init_labels = true;
+							show = false;
 							showToast( new String[] { (String) context.getText( R.string.msg_lp_name_found ), null,  location } );
-							Log.i("findLocation", location);
-						} else if ( show ) {
-							showToast( new String[] { (String) context.getText( R.string.msg_lp_name_found ), null,  location } );
-						}
-						show = false;
-					} 
-				}
+						} 
+					}
+				} 
 				try {
 					Thread.sleep(4000);
 				}
@@ -300,7 +303,13 @@ public class ShadowsView extends GLBase {
 	}
 	
 	
-	private static final String WS[] = { "", " ", "  ", "   ", "    ", "     ", "      ", "       ", "        ", "         ", "          " };
+	private static final String pad[] = new String [20];
+    static {
+    	pad[0] = "";
+    	for ( int n = 1; n < pad.length; n++ )
+    		pad[n] = pad[n-1] + " ";
+    }
+
 	private void showToast( String[] lines ){
 		int max = 0;
 		for (int n = 0; n < lines.length; n++ )
@@ -309,8 +318,8 @@ public class ShadowsView extends GLBase {
 		String text = "";
 		for (int n = 0; n < lines.length; n++ ) {
 			if ( lines[n] != null && lines[n].length() > 0 ) {
-				int delta = Math.min( (int)Math.round( (max - lines[n].length()) / 2.0f + 0.5), WS.length-1 );
-				text += WS[delta] + WS[delta] + lines[n] + (n != lines[n].length() ? "\n" : "" );
+				int delta = Math.min( (int)Math.round( (max - lines[n].length()) / 2.0f + 0.5), pad.length-1 );
+				text += pad[delta] + pad[delta] + lines[n] + (n != lines[n].length() ? "\n" : "" );
 			}
 			else {
 				text += (n != lines.length ? "\n" : "" );
@@ -331,12 +340,14 @@ public class ShadowsView extends GLBase {
 	public ShadowsView(Context c, AttributeSet as){
 		this(c);
 	}
-	
+
 	protected void registerSensors(){
+		loc_finder = new LocationFinder();
+    	loc_finder.start();
 		SensorManager sm = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
         sm.registerListener(sl, SensorManager.SENSOR_ORIENTATION, SensorManager.SENSOR_DELAY_GAME);
-    	loc_finder.start();
-    	loc_mgr.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0L, 0.0f, onLocationChange);
+
+        startSearchLocation();
 	}
 	
 	protected void unregisterSensors(){
@@ -344,8 +355,17 @@ public class ShadowsView extends GLBase {
         sm.unregisterListener(sl);
     	loc_mgr.removeUpdates(onLocationChange);
     	loc_finder.stopThread();
+		try {
+			loc_finder.join();
+		}
+		catch (InterruptedException ex) {}
+		loc_finder = null;
 	}
 
+
+	protected void startSearchLocation(){
+    	loc_mgr.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0L, 0.0f, onLocationChange);
+	}
 	
 	@Override
 	protected void end(GL10 gl) {
@@ -365,7 +385,8 @@ public class ShadowsView extends GLBase {
 		gl.glShadeModel(GL10.GL_SMOOTH);	// Enables Smooth shading
 		
 		// Depth buffer
-		gl.glClearDepthf(1.0f);				// Depth Buffer Setup
+		gl.glClearDepthf(1.0f);		
+		// Depth Buffer Setup
 		gl.glEnable(GL10.GL_DEPTH_TEST);	// Enables Depth Testing
 		gl.glDepthFunc(GL10.GL_LEQUAL);		// The Type Of Depth Test To Do
 		
@@ -457,7 +478,7 @@ public class ShadowsView extends GLBase {
     		touchX = event.getX();
     		touchY = event.getY();
     		touchP = (MAX_PROP-MIN_PROP)/(width/4f);
-	    	Log.i("TOUCH", ""+event.getAction() );
+//	    	Log.i("TOUCH", ""+event.getAction() );
 			break;
 
 		case MotionEvent.ACTION_MOVE:
@@ -480,7 +501,8 @@ public class ShadowsView extends GLBase {
 	    			propY = Math.max( propY, MIN_PROP);
 	        		touchY = event.getY();
 	    		}
-	        	Log.i("TOUCH", ""+event.getAction() + " - " + deltaX + " - " + deltaY + " - " + propX + " - " + propY );
+//	        	Log.i("TOUCH", ""+event.getAction() + " - " + deltaX + " - " + deltaY + " - " + propX + " - " + propY );
+//	        	Log.i("TOUCH", ""+event.getAction() + " - " + event.getX() + " - " + event.getY() );
 			}
 			break;
 
@@ -489,7 +511,7 @@ public class ShadowsView extends GLBase {
 				paused_time = System.currentTimeMillis();
 				paused = (paused+1)%4;
 			}
-	    	Log.i("TOUCH", ""+event.getAction() + " - " + (System.currentTimeMillis()- event_time) );
+//	    	Log.i("TOUCH", ""+event.getAction() + " - " + (System.currentTimeMillis()- event_time) );
 			break;
 			
 		default:
@@ -498,25 +520,12 @@ public class ShadowsView extends GLBase {
 		return true;
 	}
 	
-//	int frames = 0;
 	long time = System.currentTimeMillis();
 	long paused_time = System.currentTimeMillis();
 	
     @Override
-	synchronized protected void drawFrame(GL10 gl) {
-//		if ( location == null && frames++ > 100 ) {
-//			findLocation();
-//			frames = 0;
-//		}
+	protected void drawFrame(GL10 gl) {
 		initLabels(gl);
-		if (isPressed() && canPress){			
-			paused = (paused+1) % 4;
-			if ( paused == 1)
-				paused_time = System.currentTimeMillis();
-			canPress = false;
-		}
-		if (!isPressed())
-			canPress = true;
 
 		softAngles();
 
@@ -533,13 +542,10 @@ public class ShadowsView extends GLBase {
 
         // mundo
         gl.glPushMatrix();
-			synchronized (this) {
-				//Obtenemos la matriz de rotación simultanea en los 3 ejes
-				Utils.quatToMatrix( qm, 0, Utils.eulerToQuat((float)(xrot*Math.PI/180.0), (float)(yrot*Math.PI/180.0), (float)(rquad*Math.PI/180.0)) );
-				//La aplicamos al modelo multiplicandola con OpenGL
-				gl.glMultMatrixf(qm, 0);
-			}
-			gl.glTranslatef(0f,0f, -0.01f); //un poco por debajo de la brújula
+        	rotate( gl, xrot, yrot, 0 );
+		    rotate( gl, 0, 0, rquad );
+
+		    gl.glTranslatef(0f,0f, -0.01f); //un poco por debajo de la brújula
 			drawWorld(gl);
 		gl.glPopMatrix();
         
@@ -547,11 +553,8 @@ public class ShadowsView extends GLBase {
 		gl.glPushMatrix(); 
 			gl.glEnable(GL10.GL_TEXTURE_2D);						// Enable Texture Mapping 
 						
-			//Rotación de la brújula en los 3 ejes
-			//Obtenemos la matriz de rotación simultanea en los 3 ejes
-			Utils.quatToMatrix( qm, 0, Utils.eulerToQuat((float)(xrot*Math.PI/180.0), (float)(yrot*Math.PI/180.0), (float)(rquad*Math.PI/180.0)) );
-			//La aplicamos al modelo multiplicandola con OpenGL
-			gl.glMultMatrixf(qm, 0);
+		    rotate( gl, xrot, yrot, 0 );
+		    rotate( gl, 0, 0, rquad );
 			
 			// textura a aplicar
 			gl.glBindTexture(GL10.GL_TEXTURE_2D, compassTex);
@@ -579,21 +582,9 @@ public class ShadowsView extends GLBase {
 		// poste
 		gl.glPushMatrix();
 			gl.glLoadIdentity();					// Reset The View, loading the identity matrix
-			
-			
-//			gl.glPushMatrix(); {
-//				gl.glTranslatef(0, 0, 0.01f);
-//				drawShadow(gl);
-//			} gl.glPopMatrix();
-//
-			
 			gl.glTranslatef(0,0,-5); // center scene
 
-			//Rotación del poste en x e y
-			//Obtenemos la matriz de rotación simultanea en los ejes x, y
-			Utils.quatToMatrix( qm, 0, Utils.eulerToQuat((float)(xrot*Math.PI/180.0), (float)(yrot*Math.PI/180.0), 0) );
-			//La aplicamos al modelo multiplicandola con OpenGL
-			gl.glMultMatrixf(qm, 0);
+		    rotate( gl, xrot, yrot, 0 );
 			
 			gl.glColor4f(0, 0, 1, 1.0f);
 			gl.glTranslatef(0, 0, 0.5f);
@@ -603,14 +594,9 @@ public class ShadowsView extends GLBase {
 	
 		// sombra
 		gl.glPushMatrix();
-			//Obtenemos la matriz de rotación simultanea en los 3 ejes
-			Utils.quatToMatrix( qm, 0, Utils.eulerToQuat((float)(xrot*Math.PI/180.0), (float)(yrot*Math.PI/180.0), 0 ) );
-			//La aplicamos al modelo multiplicandola con OpenGL
-			gl.glMultMatrixf(qm, 0);
+		    rotate( gl, xrot, yrot, 0 );
 
 			gl.glTranslatef(0, 0, 0.01f);
-//			gl.glScalef(propX, propY, 0f);
-			
 			drawShadow(gl);
 		gl.glPopMatrix();
 		
@@ -655,6 +641,13 @@ public class ShadowsView extends GLBase {
         
 	}
 
+    private void rotate( GL10 gl, float x, float y, float z ) {
+		//Obtenemos la matriz de rotación simultanea en los 3 ejes
+		Utils.quatToMatrix( qm, 0, Utils.eulerToQuat((float)(x*Utils.TO_RAD_FACTOR), (float)(y*Utils.TO_RAD_FACTOR), (float)(z*Utils.TO_RAD_FACTOR)) );
+		//La aplicamos al modelo multiplicandola con OpenGL
+		gl.glMultMatrixf(qm, 0);
+    }
+    
 	private void drawWorld(GL10 gl) {
     	gl.glEnable(GL10.GL_TEXTURE_2D);
     	
@@ -741,114 +734,120 @@ public class ShadowsView extends GLBase {
 	
 	
 	private void softAngles() {
-		synchronized (this) {
-			int wl_aux = (window_last+1)%window_size;
-			if ( window_first == wl_aux && window_last >= 0 )
-				window_first = (window_first+1)%window_size;
-			window_last = wl_aux;
-			
-			rquad_window[window_last][0] = rquad_aux;
-			rquad_window[window_last][1] = System.currentTimeMillis();
-			
-			float delta = Math.abs(rquad_window[window_last][0]-rquad_window[window_first][0]);
-			if ( delta > 180 ) {
-				delta = 360-delta;
-			}
-			
-			float speed = delta / (rquad_window[window_last][1]-rquad_window[window_first][1]+1);
-
-			float delta_log = delta;
-			
-			boolean discarded = true;
-			if ( (speed < 50f && delta != 0) || paused == 3 ) {
-				rquad_obj = (float)rquad_aux;
-				discarded = false;
-				if ( toggleDec == 1 && paused != 3 )
-					rquad_obj -= solarInformation.getValue(SolarInformation.DECLINATION_VALUE);
-				if ( toggleDec == 2  && paused != 3 )
-					rquad_obj += solarInformation.getValue(SolarInformation.DECLINATION_VALUE);
-			}
-			time = System.currentTimeMillis();
-			rquad_aux_prev = rquad_aux;
-
-			float inc = 1;
-			float rquad_t = rquad + (360 - rquad_obj);
-			if ( rquad_t > 360 )
-				rquad_t -= 360;
-			float sign = -1;
-			delta = rquad_t;
-			if ( rquad_t >= 180 ) {
-				sign = 1;
-				delta = 360-rquad_t;
-			}
-				
-			if ( delta <= 1 )
-				inc = sign * delta;
-			else if ( delta <= 5 )
-				inc = 1 * sign;
-			else if ( delta <= 20 )
-				inc = 5 * sign;
-			else if ( delta <= 50 )
-				inc = 10 * sign;
-			else
-				inc = 15 * sign;
-	
-			rquad += inc;
-			if ( rquad < 0 )
-				rquad += 360;
-			else if ( rquad >= 360 )
-				rquad -= 360;
-			rquad = Math.round(rquad);
-//			Log.i( "ROTACIÓN", rquad_obj + " - " + speed + " - " + delta_raw + " - " + delta + " - " + rquad_log + " - " + rquad + " - " + inc );
-//			Log.i( "ROTACIÓN", speed + " - " + rquad_obj + " - " + rquad_aux + " - " + delta_raw + " - " + (discarded?"DISCARDED":"")  );
-//			Log.i("ROTACIÓN", 
-//					 "s:"  + r(speed) + 
-//					" o:" + r(rquad_obj) + 
-//					" l:"  + r(rquad_window[window_last][0]) + 
-//					" f:"  + r(rquad_window[window_first][0]) + 
-//					" d:"  + r(delta_log) + 
-//					" do:"  + r(delta*sign) + 
-//					" - "   + (discarded ? "DISCARDED" : ""));
-
-			//Inclinamos la x un poco, porque es la forma natural del
-			//teléfono en la mano
-			//                 JI         Otro
-			xrot = (toggleX?xrot_aux:-2*xrot_aux);
-			yrot = yrot_aux*2;
-//			xrot += 30.0f;
-			if ( xrot > 70.0f )
-				xrot = 70.0f;
-			else if ( xrot < -70.0f )
-				xrot = -70.0f;
-			
-			if ( yrot > 70.0f )
-				yrot = 70.0f;
-			else if ( yrot < -70.0f )
-				yrot = -70.0f;
-			
-			//Aplicamos una conversión a los grados de rotación x e y 
-			//a través de una curva exponencial para que la inclinación
-			//no sea lineal
-			//No se si sirve para algo pero me parecía interesante hacerlo ;-)
-			xrot = softenDegrees(Math.abs(xrot))*Math.signum(xrot);
-			yrot = softenDegrees(Math.abs(yrot))*Math.signum(yrot);
-
-			if ( paused < 2 )
-				xrot = (toggleX?xrot-10f:xrot-20f);
-			
-//			Log.i("", xrot + " - " + yrot + " - " + rquad  );
+		synchronized (sl) {
+			//Azimuth - z
+			rquad_aux = rquad_aux_call ;
+			//Pitch - x
+			xrot_aux = xrot_aux_call;
+			//Roll - y
+			yrot_aux = yrot_aux_call;	
 		}
+		int wl_aux = (window_last+1)%window_size;
+		if ( window_first == wl_aux && window_last >= 0 )
+			window_first = (window_first+1)%window_size;
+		window_last = wl_aux;
+		
+		rquad_window[window_last][0] = rquad_aux;
+		rquad_window[window_last][1] = System.currentTimeMillis();
+		
+		float delta = Math.abs(rquad_window[window_last][0]-rquad_window[window_first][0]);
+		if ( delta > 180 ) {
+			delta = 360-delta;
+		}
+		
+		float speed = delta / (rquad_window[window_last][1]-rquad_window[window_first][1]+1);
+
+//		float delta_log = delta;
+//			
+//		boolean discarded = true;
+		if ( (speed < 75f && delta != 0) || paused == 3 ) {
+			rquad_obj = (float)rquad_aux;
+//			discarded = false;
+			if ( toggleDec == 1 && paused != 3 )
+				rquad_obj -= solarInformation.getValue(SolarInformation.DECLINATION_VALUE);
+			if ( toggleDec == 2  && paused != 3 )
+				rquad_obj += solarInformation.getValue(SolarInformation.DECLINATION_VALUE);
+		}
+		time = System.currentTimeMillis();
+		rquad_aux_prev = rquad_aux;
+
+		float inc = 1;
+		float rquad_t = rquad + (360 - rquad_obj);
+		if ( rquad_t > 360 )
+			rquad_t -= 360;
+		float sign = -1;
+		delta = rquad_t;
+		if ( rquad_t >= 180 ) {
+			sign = 1;
+			delta = 360-rquad_t;
+		}
+			
+		if ( delta <= 1 )
+			inc = sign * delta;
+		else if ( delta <= 5 )
+			inc = 1 * sign;
+		else if ( delta <= 20 )
+			inc = 5 * sign;
+		else if ( delta <= 50 )
+			inc = 10 * sign;
+		else
+			inc = 15 * sign;
+
+		rquad += inc;
+		if ( rquad < 0 )
+			rquad += 360;
+		else if ( rquad >= 360 )
+			rquad -= 360;
+		rquad = Math.round(rquad);
+//		Log.i( "ROTACIÓN", rquad_obj + " - " + speed + " - " + delta_raw + " - " + delta + " - " + rquad_log + " - " + rquad + " - " + inc );
+//		Log.i( "ROTACIÓN", speed + " - " + rquad_obj + " - " + rquad_aux + " - " + delta_raw + " - " + (discarded?"DISCARDED":"")  );
+//		Log.i("ROTACIÓN", 
+//				 "s:"  + r(speed) + 
+//				" o:" + r(rquad_obj) + 
+//				" l:"  + r(rquad_window[window_last][0]) + 
+//				" f:"  + r(rquad_window[window_first][0]) + 
+//				" d:"  + r(delta_log) + 
+//				" do:"  + r(delta*sign) + 
+//				" - "   + (discarded ? "DISCARDED" : ""));
+
+		//Inclinamos la x un poco, porque es la forma natural del
+		//teléfono en la mano
+		//                 JI         Otro
+		xrot = (toggleX?xrot_aux:-2*xrot_aux);
+		yrot = yrot_aux*2;
+//			xrot += 30.0f;
+		if ( xrot > 70.0f )
+			xrot = 70.0f;
+		else if ( xrot < -70.0f )
+			xrot = -70.0f;
+		
+		if ( yrot > 70.0f )
+			yrot = 70.0f;
+		else if ( yrot < -70.0f )
+			yrot = -70.0f;
+		
+		//Aplicamos una conversión a los grados de rotación x e y 
+		//a través de una curva exponencial para que la inclinación
+		//no sea lineal
+		//No se si sirve para algo pero me parecía interesante hacerlo ;-)
+		xrot = softenDegrees(Math.abs(xrot))*Math.signum(xrot);
+		yrot = softenDegrees(Math.abs(yrot))*Math.signum(yrot);
+
+		if ( paused < 2 )
+			xrot = (toggleX?xrot-10f:xrot-20f);
+		
+//		Log.i("", xrot + " - " + yrot + " - " + rquad  );
 	}
 	
-	static private String r( float v ) {
-		
-		char[] cad = "0000.000".toCharArray();
-		String number = ""+v;
-		int pos = number.indexOf('.');
-		for ( int n = pos-1; n>=0; n-- )
-			cad[4-pos+n] = number.charAt(n);
-		for ( int n = pos+1; (4+n-pos) < cad.length && n < number.length(); n++ )
-			cad[4+n-pos] = number.charAt(n);
-		return new String(cad);
-	}
+//	static private String r( float v ) {
+//		
+//		char[] cad = "0000.000".toCharArray();
+//		String number = ""+v;
+//		int pos = number.indexOf('.');
+//		for ( int n = pos-1; n>=0; n-- )
+//			cad[4-pos+n] = number.charAt(n);
+//		for ( int n = pos+1; (4+n-pos) < cad.length && n < number.length(); n++ )
+//			cad[4+n-pos] = number.charAt(n);
+//		return new String(cad);
+//	}
 }
