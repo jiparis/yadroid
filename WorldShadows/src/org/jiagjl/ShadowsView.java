@@ -198,8 +198,6 @@ public class ShadowsView extends GLBase {
 				else
 					showToast(R.string.msg_lp_not_changed);
 			}
-			else
-				showToast( "Hola" );
 			loc_mgr.removeUpdates(this);
 		}
 
@@ -309,17 +307,25 @@ public class ShadowsView extends GLBase {
     	for ( int n = 1; n < pad.length; n++ )
     		pad[n] = pad[n-1] + " ";
     }
+    
+    private static final Paint pad_calc = new Paint();
+    private static float ws_width;
+    static {
+    	ws_width = pad_calc.measureText(" ");
+    }
 
 	private void showToast( String[] lines ){
-		int max = 0;
-		for (int n = 0; n < lines.length; n++ )
-			if ( lines[n] != null && lines[n].length() > max )
-				max = lines[n].length();
+		float max = 0;
+		for (int n = 0; n < lines.length; n++ ) {
+			float width = pad_calc.measureText(lines[n] != null ? lines[n] : "");
+			if ( width > max )
+				max = width;
+		}
 		String text = "";
 		for (int n = 0; n < lines.length; n++ ) {
 			if ( lines[n] != null && lines[n].length() > 0 ) {
-				int delta = Math.min( (int)Math.round( (max - lines[n].length()) / 2.0f + 0.5), pad.length-1 );
-				text += pad[delta] + pad[delta] + lines[n] + (n != lines[n].length() ? "\n" : "" );
+				int delta = Math.min( (int)Math.round( (max - pad_calc.measureText(lines[n])) / ws_width / 2), pad.length-1 );
+				text += pad[delta] + lines[n] + (n != lines[n].length() ? "\n" : "" );
 			}
 			else {
 				text += (n != lines.length ? "\n" : "" );
