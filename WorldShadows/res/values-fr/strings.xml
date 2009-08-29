@@ -11,7 +11,7 @@
 	<string name="menu_location">Ma position</string>
 	
 	<string name="txt_out_of_range">Hors de portée</string>
-	<string name="txt_shadow_length">"Longueur de l'ombre: "</string>
+	<string name="txt_shadow_length">"Longueur de l\'ombre: "</string>
 	<string name="txt_sunrise">"Le lever du soleil "</string>
 	<string name="txt_sunset">"Crépuscule "</string>
 	<string name="txt_day_selection">Choisissez la date</string>
@@ -20,29 +20,54 @@
 	<string name="txt_rotation_compass">Boussole</string>
 	<string name="txt_rotation_0">Sans rotation</string>
 	<string name="txt_view">"Vue: "</string>
-	<string name="txt_help">"Cliquez sur l'écran = Vue | Bouger = Modèle"</string>
+	<string name="txt_help">"Cliquez sur l\'écran = Vue | Bouger = Modèle"</string>
 	<string name="txt_move_slider">"Déplacez le curseur pour"</string>
-	<string name="txt_move_slider_1">"sélectionner l'heure"</string>
+	<string name="txt_move_slider_1">"sélectionner l\'heure"</string>
 	
 	<string name="msg_lp_default">"Emplacement par défaut: Séville, Espagne"</string>
 	<string name="msg_lp_try">"Tentative toutes les 5 secondes"</string>
-	<string name="msg_lp_disbled">"Le service d'emplacement est désactivé"</string>
-	<string name="msg_lp_no_location">"Impossible de trouver l'emplacement"</string>
+	<string name="msg_lp_disbled">"Le service d\'emplacement est désactivé"</string>
+	<string name="msg_lp_no_location">"Impossible de trouver l\'emplacement"</string>
 	<string name="msg_lp_found">"Emplacement trouvé. Maintenant, tentative de trouver son nom"</string>
-	<string name="msg_lp_name_found">"Nom de l'emplacement trouvé"</string>
-	<string name="msg_lp_name_not_found">"Nom de l'emplacement non trouvé"</string>
-	<string name="msg_lp_name_find">"Vous cherchez l'emplacement actuel ..."</string>
+	<string name="msg_lp_name_found">"Nom de l\'emplacement trouvé"</string>
+	<string name="msg_lp_name_not_found">"Nom de l\'emplacement non trouvé"</string>
+	<string name="msg_lp_name_find">"Vous cherchez l\'emplacement actuel ..."</string>
 	<string name="msg_lp_not_changed">"Situation inchangée"</string>
 	
 	<string name="help_content">
-	\n
-	Cette application montre l'ombre produite par le soleil sur un objet pour un jour et une heure.\n
-	
-	Vous pouvez utiliser la barre de défilement pour régler l'heure du jour  (aujourd'hui, par défaut) et voir ce que serait l'ombre.\n
-	\n
-	Si la boussole ne marche pas correctement ou est instable, vous devez orienter le téléphone manuellement: sélectionnez la date et l'heure, appuyer sur l'écran(une ou deux fois) pour faire une pause de la rotation de la scène, et déplacer le téléphone jusqu'à ce que l'ombre que vous voyez sur un objet réel soit dans la même direction que celle que vous voyez sur l'écran. Maintenant, déplacez la barre de défilement pour voir l'évolution de l'ombre au cours de la journée.\n
-	
-	La connexion Internet est nécessaire uniquement pour obtenir des informations sur la ville dans laquelle vous êtes, et ne peut pas affecter le bon fonctionnement des calculs de l'ombre.\n
-	\n
+"
+Cette application montre l\'ombre produite par le soleil sur un objet pour un jour et une heure.
+
+Usage:
+  - Barre de défilement pour régler l\'heure
+  - Touchez l\'écran pour changer la vue:
+        3D, Pause, Boussole, Sans rotation
+  - Touchez l\'écran et déplacer pour changer
+    la taille du modèle
+  - Menu pour plus d\'options
+
+Si la boussole ne marche pas correctement ou est instable, vous devez orienter le téléphone manuellement:
+  - Sélectionnez la date et l\'heure
+  - Touchez l\'écran pour faire une pause de 
+    la rotation de la scène
+  - Déplacer le téléphone jusqu\'à ce que 
+    l\'ombre que vous voyez sur un objet réel 
+    soit dans la même direction que celle que 
+    vous voyez sur l\'écran
+  - Déplacez la barre de défilement pour
+    voir l\'évolution de l\'ombre au cours de 
+    la journée
+
+         --------------
+
+Merci à:
+    Gerardo et Andrés pour les traductions
+    Olga, Carmen et Belén pour votre patience
+
+Copyright (c) 2009
+    Antonio Galán Vázquez
+    José Ignacio París Prieto
+    José Luis Oramas Martín
+"
 	</string>
 </resources>

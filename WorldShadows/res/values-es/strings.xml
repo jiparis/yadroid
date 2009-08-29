@@ -35,14 +35,39 @@
 	<string name="msg_lp_not_changed">"Ubicación sin cambios"</string>
 
 	<string name="help_content">
-	\n
-	Esta aplicación muestra la sombra que genera el sol sobre un objeto determinado, para un día y una hora concreta.\n
-	\n
-	Puede utilizar la barra de desplazamiento para establecer la hora del día seleccionado (hoy por defecto) y ver cuál sería la sombra proyectada.\n
-	\n
-	Si la brújula no funciona correctamente o es inestable, oriente el teléfono de forma manual: seleccione el día y la hora actual, pulse en la pantalla (una o dos veces) para pausar la rotación de la escena, y mueva el teléfono móvil hasta que la sombra que ve en un objeto real tenga la misma dirección que la ve en la pantalla. Ahora mueva la barra de desplazamiento para ver la evolución de la sombra a lo largo del día.\n
-	\n
-	La conexión a internet sólo es necesaria para obtener la información sobre la localidad en la que se encuentra, y no afecta al correcto funcionamiento de los cálculos de la sobre.\n  
-	\n
-	</string>
+"
+Esta aplicación muestra la sombra que genera el sol sobre un objeto determinado, para un día y una hora concreta.
+
+Uso:
+  - Mueva la barra desplazamiento para 
+    cambiar la hora
+  - Tocar en la pantalla para cambiar la vista:
+         3D, Pausa, Brújula, Sin rotación
+  - Tocar y arrastrar en la pantalla para
+    cambiar el tamaño del modelo
+  - Menú para más opciones
+
+  
+Si la brújula no funciona correctamente o es inestable, oriente el teléfono de forma manual: 
+  - Seleccione el día y la hora actual
+  - Pulse en la pantalla hasta pausar la 
+    rotación de la escena
+  - Mueva el teléfono móvil hasta que la 
+    sombra que ve en un objeto real tenga la 
+    misma dirección que la de la pantalla 
+  - Use la barra de desplazamiento para ver
+    la evolución de la sombra durante el día
+
+         --------------
+
+Gracias a:
+    Gerardo y Andrés por las traducciones
+    Olga, Carmen y Belén por su paciencia
+
+Copyright (c) 2009
+    Antonio Galán Vázquez
+    José Ignacio París Prieto
+    José Luis Oramas Martín
+"
+  </string>
 </resources>
