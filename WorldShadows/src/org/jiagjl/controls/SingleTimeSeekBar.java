@@ -48,7 +48,7 @@ public class SingleTimeSeekBar extends SeekBar implements SeekBar.OnSeekBarChang
 		this.maxTime = maxTime;
 		this.time_length = maxTime - minTime;
 		
-		setTime( minTime );
+//		setTime( minTime );
 	}
 	
 	static final int ATTRACTOR = 0;
@@ -72,23 +72,31 @@ public class SingleTimeSeekBar extends SeekBar implements SeekBar.OnSeekBarChang
         if ( startTime > maxTime )
         	startTime = maxTime-(minuteGap/60f);
 
+//		Log.i("setTime", "" + startTime );
         setProgress( timeToProgress( startTime ) );
 	}
 
 	private float[] mMarks;
 	private String[] mLabels;
+	private boolean callback_paused = false;
+
+	public void setCallbackPaused( boolean paused ) {
+		callback_paused = paused;
+	}
 	
 	public void setTimeMarks( float[] marks, String[] labels ) {
 		mMarks = marks;
 		mLabels = labels;
         if (!firstTime ) {
             int progress = getProgress();
-			for ( int n = 0; n < mMarks.length; n++ ) {
+            setCallbackPaused( true );
+            for ( int n = 0; n < mMarks.length; n++ ) {
 		        setProgress( timeToProgress(mMarks[n]));
 		        mMarks[n] = startThumbNormal.getBounds().left + startThumbNormal.getIntrinsicWidth()/2;
 //		        Log.i("mMarks[n]", ""+mMarks[n]);
 			}
 	        setProgress( progress );
+            setCallbackPaused( false );
         }
 	}
 	
@@ -104,7 +112,7 @@ public class SingleTimeSeekBar extends SeekBar implements SeekBar.OnSeekBarChang
 		return progressToTime(getProgress());
 	}
 	
-	
+
 	int w;
 	int h;
     int pt;
@@ -191,7 +199,10 @@ public class SingleTimeSeekBar extends SeekBar implements SeekBar.OnSeekBarChang
 	}
 	
 	public void onProgressChanged(SeekBar seekBar, int newValue, boolean fromUser) {
-		minValue = newValue;
+		if ( callback_paused )
+			return;
+		
+		minValue = newValue; 
 		if ( minValue < ATTRACTOR_MIN )
 			minValue = 0f;
 		if ( minValue > ATTRACTOR_MAX )
@@ -207,6 +218,7 @@ public class SingleTimeSeekBar extends SeekBar implements SeekBar.OnSeekBarChang
 		if (t < 10) hour = "0" + t; else hour = ""+t;
 		min_label = hour + ":" + minute;
 
+//		Log.i("TIME", t + ":" + m );
 		//Llamada al callback
 		callback.onStartTimeValueChange(t, m);
 

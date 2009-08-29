@@ -136,7 +136,7 @@ public class geomagModel {
 //        results[6][0] = firstPass.dip;
 //        results[7][0] = firstPass.gv;
         
-		Log.i("DECLINATION", ""+results[5][0]);
+//		Log.i("DECLINATION", ""+results[5][0]);
 	}
 	
 	public double getDeclination( double lat, double lon, Calendar date ) {

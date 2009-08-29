@@ -8,6 +8,7 @@ import org.jiagjl.controls.SingleTimeSeekBar;
 import android.app.Activity;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
+import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.view.Menu;
@@ -25,11 +26,13 @@ public class ShadowsActivity extends Activity implements DatePickerDialog.OnDate
     ShadowsView sv;
     View timeSeekBar;
     boolean mSingle = true;
-
+    public static final String PREFS_NAME = "ShadowFinder";
+    
 	/** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        
         setTitle(R.string.app_name);
         
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
@@ -49,8 +52,8 @@ public class ShadowsActivity extends Activity implements DatePickerDialog.OnDate
         
         float min_time = 8f;
         float max_time = 22f;
-        Calendar c = sv.solarInformation.getCalendar();
-        float start_time = c.get(Calendar.HOUR_OF_DAY) + c.get(Calendar.MINUTE) / 60.0f;
+//        Calendar c = sv.solarInformation.getCalendar();
+//        float start_time = c.get(Calendar.HOUR_OF_DAY) + c.get(Calendar.MINUTE) / 60.0f;
         
         if ( mSingle ) {
 	        timeSeekBar = new SingleTimeSeekBar(getApplicationContext(),
@@ -59,6 +62,10 @@ public class ShadowsActivity extends Activity implements DatePickerDialog.OnDate
 						}
 						public void onStartTimeValueChange(int hour, int minute) {
 							sv.solarInformation.setTime(hour, minute);
+							String m, h;
+							if (minute < 10) m = "0" + minute; else m = ""+minute;
+							if (hour < 10) h = "0" + hour; else h = ""+hour;
+							sv.time_label = h + ":" + m;
 							//Log.i( "SHADOWS", "Start: " + hour + ":" + minute  );
 						}
 					});
@@ -84,7 +91,7 @@ public class ShadowsActivity extends Activity implements DatePickerDialog.OnDate
         }
 
         sv.solarInformation.setTimeWindow(SolarInformation.DEFAULT_TIME_WINDOW);
-        setTime( start_time );
+//        setTime( start_time );
         
         ll.addView(timeSeekBar);
         
@@ -99,6 +106,19 @@ public class ShadowsActivity extends Activity implements DatePickerDialog.OnDate
 
         addContentView(ll, new LayoutParams
         		(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT));
+
+        SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
+        boolean first = settings.getBoolean("first", true);
+        
+        if ( first ) {
+            SharedPreferences.Editor editor = settings.edit();
+            editor.putBoolean("first", false);
+            editor.commit();
+            sv.post( new Runnable(){
+    			public void run() {
+    				showDialog(HELP_DIALOG);
+    		}});
+        }        	
     }
 
     
@@ -118,10 +138,12 @@ public class ShadowsActivity extends Activity implements DatePickerDialog.OnDate
         	;
         else {
 	        SingleTimeSeekBar tsb = (SingleTimeSeekBar)timeSeekBar;
-	        float time = tsb.getTime();
+//	        float time = tsb.getTime();
 	        tsb.setTimeLimits(min_time, max_time);
 	        tsb.setTimeMarks(new float[] { sunrise, sunset }, new String[] { getText(R.string.txt_sunrise) + timeToString(sunrise), getText(R.string.txt_sunset) + timeToString(sunset) });
-	        tsb.setTime(time);
+            Calendar c = sv.solarInformation.getCalendar();
+            float start_time = c.get(Calendar.HOUR_OF_DAY) + c.get(Calendar.MINUTE) / 60.0f;
+	        tsb.setTime(start_time);
         }
 //        Log.i("", "" + min_time + " - " + sunrise + " - " + max_time + " - " + sunset);
 	}
@@ -197,12 +219,12 @@ public class ShadowsActivity extends Activity implements DatePickerDialog.OnDate
         switch (item.getItemId()) {
         case R.id.menu_now:
         	sv.solarInformation.now();
-            Calendar c = sv.solarInformation.getCalendar();
-            float start_time = c.get(Calendar.HOUR_OF_DAY) + c.get(Calendar.MINUTE) / 60.0f;
+//            Calendar c = sv.solarInformation.getCalendar();
+//            float start_time = c.get(Calendar.HOUR_OF_DAY) + c.get(Calendar.MINUTE) / 60.0f;
         	//Si no se invalida primero, no se pinta bien el nuevo valor del slider
         	timeSeekBar.invalidate();
-        	setTime(start_time);
         	setTimeLimits();
+//        	setTime(start_time);
     		sv.must_init_labels = true;
         	return true;
         case R.id.menu_goto:
@@ -261,7 +283,7 @@ public class ShadowsActivity extends Activity implements DatePickerDialog.OnDate
         case HELP_DIALOG:
           d = new Dialog(ShadowsActivity.this);
           d.setContentView(R.layout.help);
-          d.setTitle(R.string.app_title);
+          d.setTitle(getText(R.string.app_title) + " " + getText(R.string.app_version));
           break;
         default:
             d = null;

@@ -36,6 +36,7 @@ import android.widget.Toast;
 public class ShadowsView extends GLBase {
 
 	SolarInformation solarInformation;
+    String time_label = null;
 
 	float[] origen=new float[]{0f,0f};
 	
@@ -162,6 +163,12 @@ public class ShadowsView extends GLBase {
 		solarInformation=new SolarInformation();
 
     	loc_mgr = (LocationManager)context.getSystemService(Context.LOCATION_SERVICE);
+    	Location loc = null;
+    	loc = loc_mgr.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+    	if ( loc != null ) {
+	    	solarInformation.setPosition(loc.getLatitude(), loc.getLongitude());
+    	}
+    	
 //    	Location loc = null;
 //    	if ( loc_mgr.isProviderEnabled(LocationManager.NETWORK_PROVIDER) ) {
 //        	loc = loc_mgr.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
@@ -623,7 +630,7 @@ public class ShadowsView extends GLBase {
 
     	mMLabels.print(gl, (int)mLabelDate, MultiLabelMaker.HA_CENTER, MultiLabelMaker.VA_TOP );
     	mMLabels.print(gl, " - ", MultiLabelMaker.HA_CENTER, MultiLabelMaker.VA_TOP );
-    	mMLabels.println(gl, solarInformation.getStringTime(SolarInformation.LOCAL_TIME), MultiLabelMaker.HA_CENTER, MultiLabelMaker.VA_TOP );
+    	mMLabels.println(gl, (time_label != null ? time_label : solarInformation.getStringTime(SolarInformation.LOCAL_TIME)), MultiLabelMaker.HA_CENTER, MultiLabelMaker.VA_TOP );
     	
     	if ( location != null )
         	mMLabels.println(gl, mLabellocation, MultiLabelMaker.HA_CENTER, MultiLabelMaker.VA_TOP );
