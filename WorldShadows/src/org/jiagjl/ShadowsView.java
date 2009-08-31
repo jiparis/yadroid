@@ -275,7 +275,7 @@ public class ShadowsView extends GLBase {
 				synchronized (this) {
 					if ( locate ){
 				    	String loc = reverseLocation( lat, lon );
-						if ( loc != null ) {
+						if ( loc != null && !stop ) {
 							if ( !loc.equals(location) ) {
 								location = loc;
 								must_init_labels = true;
