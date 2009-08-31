@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    
+    <string name="app_name">aShadow Finder</string>
+    <string name="app_title">Shadow Finder</string>
+    
+    <string name="menu_now">Jetzt</string>
+	<string name="menu_goto">Datum ändern</string>
+	<string name="menu_config">Einstellungen</string>
+	<string name="menu_help">Hilfe</string>
+	<string name="menu_location">Mein Standort</string>
+	
+	<string name="txt_out_of_range">Außer Reichweite</string>
+	<string name="txt_shadow_length">"Länge des Schattens: "</string>
+	<string name="txt_sunrise">"Sonnenaufgang "</string>
+	<string name="txt_sunset">"Sonnenuntergang "</string>
+	<string name="txt_day_selection">Wählen Sie das Datum aus</string>
+	<string name="txt_rotation_3d">3D</string>
+	<string name="txt_rotation_paused">Rotationspause</string>
+	<string name="txt_rotation_compass">Kompass</string>
+	<string name="txt_rotation_0">ohne Rotation</string>
+	<string name="txt_view">"Ansicht: "</string>
+	<string name="txt_help">"Drücken = Ansicht | Bewegung = Modell"</string>
+	<string name="txt_move_slider">"Bewegen Sie den Scrollbar,"</string>
+	<string name="txt_move_slider_1">"um die Zeit einzustellen"</string>
+	
+	<string name="msg_lp_default">"Standard Lage: Sevilla, España"</string>
+	<string name="msg_lp_try">"Es wir alle 5 Sekunden wiederholt"</string>
+	<string name="msg_lp_disbled">"Der Findungsdient ist ausgeschalten"</string>
+	<string name="msg_lp_no_location">"Die Lage kann nicht gefunden werden"</string>
+	<string name="msg_lp_found">"Lage gefunden. Es wird versucht den Namen zu finden"</string>
+	<string name="msg_lp_name_found">"Name der Lage gefunden"</string>
+	<string name="msg_lp_name_not_found">"Name der Lage kann nicht gefunden werden"</string>
+	<string name="msg_lp_name_find">"Es wird versucht den Namen zu finden ..."</string>
+	<string name="msg_lp_not_changed">"Lage unverändert"</string>
+	
+	<string name="help_content">
+"
+Diese Anwendung zeigt den Schatten der Sonne auf ein bestimmtes Objekt für einen bestimmten Tag und Uhrzeit an.
+
+Benutzung: 
+  - Bewegen Sie die Scrollbar, um die Zeit 
+    zu ändern 
+  - Berühren Sie den Bildschirm, um Ansicht 
+    zu ändern: 
+		 3D, Rotationspause, 
+		 Kompass, ohne Rotation 
+  - Berühren Sie den Bildschirm und 
+    bewegen zu modellieren Größe ändern 
+  - Drücken Sie Menü, um weitere Optionen 
+  
+Wenn der Kompass funktioniert nicht richtig oder ist instabil, orientieren Sie das Telefon von Hand: 
+  - Wählen Sie den aktuellen Tag und die 
+    Uhrzeit 
+  - Tippen Sie auf dem Bildschirm Um die 
+    Sensorrotation anzuhalten 
+  - Bewegen Sie Ihr Mobiltelefon so, dass der 
+    Schatten den Sie wirklich sehen die gleiche
+    Richtung hat wie auf dem Bildschirm zu
+    sehen ist 
+  - Bewegen Sie die Scrollbar um den Verlauf
+    des Schatten über gen ganzen Tag hinweg
+    zu sehen
+
+         --------------
+
+Dank an:
+    Gerardo und Andrés für die
+       Übersetzungen
+    Olga, Carmen und Belén für Ihre Geduld
+
+Copyright (c) 2009
+    Antonio Galán Vázquez
+    José Ignacio París Prieto
+    José Luis Oramas Martín
+"
+	</string>
+</resources>

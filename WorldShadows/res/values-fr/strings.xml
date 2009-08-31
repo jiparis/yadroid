@@ -8,7 +8,7 @@
 	<string name="menu_goto">Changer la date</string>
 	<string name="menu_config">Préférences</string>
 	<string name="menu_help">Aide</string>
-	<string name="menu_location">Ma position</string>
+	<string name="menu_location">Mon emplacement</string>
 	
 	<string name="txt_out_of_range">Hors de portée</string>
 	<string name="txt_shadow_length">"Longueur de l\'ombre: "</string>
@@ -31,8 +31,8 @@
 	<string name="msg_lp_found">"Emplacement trouvé. Maintenant, tentative de trouver son nom"</string>
 	<string name="msg_lp_name_found">"Nom de l\'emplacement trouvé"</string>
 	<string name="msg_lp_name_not_found">"Nom de l\'emplacement non trouvé"</string>
-	<string name="msg_lp_name_find">"Vous cherchez l\'emplacement actuel ..."</string>
-	<string name="msg_lp_not_changed">"Situation inchangée"</string>
+	<string name="msg_lp_name_find">"Tentative de trouver l\'emplacement actuel ..."</string>
+	<string name="msg_lp_not_changed">"Emplacement inchangé"</string>
 	
 	<string name="help_content">
 "
