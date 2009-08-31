@@ -41,14 +41,15 @@ Esta aplicación muestra la sombra que genera el sol sobre un objeto determinado
 Uso:
   - Mueva la barra desplazamiento para 
     cambiar la hora
-  - Tocar en la pantalla para cambiar la vista:
+  - Toque en la pantalla para cambiar la vista:
          3D, Pausa, Brújula, Sin rotación
-  - Tocar y arrastrar en la pantalla para
+  - Toque y arrastre en la pantalla para
     cambiar el tamaño del modelo
   - Menú para más opciones
 
   
-Si la brújula no funciona correctamente o es inestable, oriente el teléfono de forma manual: 
+¡¡ Atención !!
+La brújula de su teléfono puede verse afectada por los metales cercanos, por lo que puede no funcionar correctamente. En ese caso oriente el teléfono de forma manual: 
   - Seleccione el día y la hora actual
   - Pulse en la pantalla hasta pausar la 
     rotación de la escena

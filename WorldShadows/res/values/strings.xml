@@ -48,7 +48,8 @@ Usage:
   - Menu for more options
   
 
-If the compass is not working correctly or it is very unstable
+Warning!!
+The accuracy of the phone's compass can be affected by the surrounding metal. If the compass is not working correctly or it is very unstable, you can do a manual orientation:
   - Select the current time and day (option 
     menu \"Now\")
   - Touch the screen to pause rotations
