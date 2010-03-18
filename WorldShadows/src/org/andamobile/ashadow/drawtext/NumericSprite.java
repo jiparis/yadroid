@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.jiagjl.drawtext;
+package org.andamobile.ashadow.drawtext;
 
 import javax.microedition.khronos.opengles.GL10;
 

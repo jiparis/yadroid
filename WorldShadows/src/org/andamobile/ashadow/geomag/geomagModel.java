@@ -1,4 +1,4 @@
-package org.jiagjl.geomag;
+package org.andamobile.ashadow.geomag;
 
 
 import java.io.BufferedReader;

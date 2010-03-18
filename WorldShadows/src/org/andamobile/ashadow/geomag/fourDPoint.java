@@ -3,7 +3,7 @@
 // Decompiler options: packimports(3) 
 // Source File Name:   fourDPoint.java
 
-package org.jiagjl.geomag;
+package org.andamobile.ashadow.geomag;
 
 
 // Referenced classes of package gov.usgs.apps.magcalc:

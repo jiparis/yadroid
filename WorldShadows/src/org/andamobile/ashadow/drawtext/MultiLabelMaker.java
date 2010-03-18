@@ -1,4 +1,4 @@
-package org.jiagjl.drawtext;
+package org.andamobile.ashadow.drawtext;
 
 import java.util.Arrays;
 

@@ -1,7 +1,7 @@
-package org.jiagjl.test;
+package org.andamobile.ashadow.test;
 
-import org.jiagjl.R;
-import org.jiagjl.controls.TimeSeekBar;
+import org.andamobile.ashadow.R;
+import org.andamobile.ashadow.controls.TimeSeekBar;
 
 import android.app.Activity;
 import android.os.Bundle;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.jiagjl.drawtext;
+package org.andamobile.ashadow.drawtext;
 
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -30,8 +30,8 @@ import javax.microedition.khronos.opengles.GL10;
 import javax.microedition.khronos.opengles.GL11;
 import javax.microedition.khronos.opengles.GL11Ext;
 
-import org.jiagjl.drawtext.matrix.MatrixTrackingGL;
-import org.jiagjl.drawtext.matrix.Projector;
+import org.andamobile.ashadow.drawtext.matrix.MatrixTrackingGL;
+import org.andamobile.ashadow.drawtext.matrix.Projector;
 
 /**
  * An OpenGL text label maker.

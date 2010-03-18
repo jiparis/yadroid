@@ -1,8 +1,8 @@
-package org.jiagjl.drawtext;
+package org.andamobile.ashadow.drawtext;
 
 import javax.microedition.khronos.opengles.GL10;
 
-import org.jiagjl.drawtext.CharSeqLabelMaker.PositionFinder;
+import org.andamobile.ashadow.drawtext.CharSeqLabelMaker.PositionFinder;
 
 import android.graphics.Paint;
 

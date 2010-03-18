@@ -3,7 +3,7 @@
 // Decompiler options: packimports(3) 
 // Source File Name:   badLocationFormat.java
 
-package org.jiagjl.geomag;
+package org.andamobile.ashadow.geomag;
 
 
 @SuppressWarnings("serial")

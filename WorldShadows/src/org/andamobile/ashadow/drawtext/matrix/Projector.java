@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.jiagjl.drawtext.matrix;
+package org.andamobile.ashadow.drawtext.matrix;
 
 import android.opengl.Matrix;
 

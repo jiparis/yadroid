@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.jiagjl.drawtext;
+package org.andamobile.ashadow.drawtext;
 
 import java.nio.CharBuffer;
 import java.nio.FloatBuffer;
