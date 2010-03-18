@@ -1,4 +1,4 @@
-package org.jiagjl.controls;
+package org.andamobile.ashadow.controls;
 
 import android.content.Context;
 import android.content.res.Resources;
@@ -9,7 +9,7 @@ import android.graphics.Shader;
 import android.graphics.Paint.Align;
 import android.view.MotionEvent;
 
-import org.jiagjl.R;
+import org.andamobile.ashadow.R;
 
 /**
  * SeekBar (slider) control with two thumbs for horizontal display. Displays

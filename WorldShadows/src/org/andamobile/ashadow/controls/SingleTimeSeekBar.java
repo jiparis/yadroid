@@ -1,7 +1,7 @@
-package org.jiagjl.controls;
+package org.andamobile.ashadow.controls;
 
-import org.jiagjl.R;
-import org.jiagjl.controls.TimeSeekBar.ITimeBarCallback;
+import org.andamobile.ashadow.R;
+import org.andamobile.ashadow.controls.TimeSeekBar.ITimeBarCallback;
 
 import android.content.Context;
 import android.graphics.Canvas;

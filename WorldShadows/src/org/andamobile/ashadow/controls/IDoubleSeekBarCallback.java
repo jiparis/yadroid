@@ -1,4 +1,4 @@
-package org.jiagjl.controls;
+package org.andamobile.ashadow.controls;
 
 /**
  * Callback interface for DoubleSeekBar subclasses. Each {@link DoubleSeekBar}

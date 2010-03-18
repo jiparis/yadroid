@@ -1,4 +1,4 @@
-package org.jiagjl.controls;
+package org.andamobile.ashadow.controls;
 
 import android.content.Context;
 import android.graphics.Canvas;
