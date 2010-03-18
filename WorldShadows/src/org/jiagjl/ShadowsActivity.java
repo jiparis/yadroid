@@ -310,7 +310,8 @@ public class ShadowsActivity extends Activity implements DatePickerDialog.OnDate
 		sv.solarInformation.setDate(year, month, day);
 		sv.must_init_labels = true;
         setTimeLimits();
-//		Log.i( "DatePicker", ""+year+"-"+month+"-"+day );
+
+        sv.showToast(getText(R.string.txt_day_selected).toString() + year + " / " + (month + 1) + " / " + day);
 	}
     
 }

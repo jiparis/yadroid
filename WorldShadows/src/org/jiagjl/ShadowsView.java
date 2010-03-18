@@ -91,7 +91,7 @@ public class ShadowsView extends GLBase {
 	
 	Context context;
 	
-	float lightAmbient[]= { 0.5f, 0.5f, 0.5f, 1.0f }; 	// Ambient Light Values
+	float lightAmbient[]= { 1.0f, 1.0f, 1.0f, 1.0f }; 	// Ambient Light Values
 	float lightDiffuse[]= { 1.0f, 1.0f, 1.0f, 1.0f };	// Diffuse Light Values 
 	float lightPosition[]= { 0.0f, 0.0f, 2.0f, 1.0f };	// Light Position 	
 
@@ -167,29 +167,7 @@ public class ShadowsView extends GLBase {
     	loc = loc_mgr.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
     	if ( loc != null ) {
 	    	solarInformation.setPosition(loc.getLatitude(), loc.getLongitude());
-    	}
-    	
-//    	Location loc = null;
-//    	if ( loc_mgr.isProviderEnabled(LocationManager.NETWORK_PROVIDER) ) {
-//        	loc = loc_mgr.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-//        	if ( loc != null ) {
-//    	    	solarInformation.setPosition(loc.getLatitude(), loc.getLongitude());
-//    	    	loc_finder = new LocationFinder( loc.getLatitude(), loc.getLongitude() );
-//    	    	Log.i("LOCATION", loc.getLatitude() + " - " + loc.getLongitude() );
-//        	}
-//        	else {
-//    			showToast(  new int[]{ R.string.msg_lp_no_location, -1, R.string.msg_lp_default } );
-//    			loc_finder = new LocationFinder( Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY );
-//    	    	Log.i("LOCATION", "No location" );
-//        	}
-//        	loc_mgr.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0L, 0.0f, onLocationChange);
-//
-//        }
-//    	else {
-//			showToast(  new int[]{ R.string.msg_lp_disbled, -1, R.string.msg_lp_default } );
-//			 = new LocationFinder( Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY );
-//    	}
-    	
+    	}    	
 	}
 
 
@@ -298,14 +276,14 @@ public class ShadowsView extends GLBase {
 		}
 	}
 
-	private void showToast( int[] resourceIds ) {
+	public void showToast( int[] resourceIds ) {
 		String[] lines = new String[resourceIds.length];
 		for (int n = 0; n < resourceIds.length; n++ )
 			lines[n] = (resourceIds[n] == -1 ? null : (String) context.getText( resourceIds[n] ));
 		showToast(lines);
 	}
 
-	private void showToast( int resourceId ) {
+	public void showToast( int resourceId ) {
 		showToast((String) context.getText( resourceId ) );
 	}
 	
@@ -323,7 +301,7 @@ public class ShadowsView extends GLBase {
     	ws_width = pad_calc.measureText(" ");
     }
 
-	private void showToast( String[] lines ){
+	public void showToast( String[] lines ){
 		float max = 0;
 		for (int n = 0; n < lines.length; n++ ) {
 			float width = pad_calc.measureText(lines[n] != null ? lines[n] : "");
@@ -348,7 +326,7 @@ public class ShadowsView extends GLBase {
 		Log.i("surfaceDestroyed", "surfaceDestroyed");
 	}
 	
-	private void showToast( final String text ){
+	public void showToast( final String text ){
 		post(new Runnable(){
 			public void run() {
 	        	Toast t = Toast.makeText(context, text, Toast.LENGTH_LONG);
@@ -425,8 +403,8 @@ public class ShadowsView extends GLBase {
 		gl.glEnable(GL10.GL_LIGHT0);
 
 		gl.glLightfv(GL10.GL_LIGHT0, GL10.GL_AMBIENT, lightAmbient,	0);
-		gl.glLightfv(GL10.GL_LIGHT0, GL10.GL_DIFFUSE, lightDiffuse,	0);
-		gl.glLightfv(GL10.GL_LIGHT0, GL10.GL_POSITION, lightPosition, 0);
+		//gl.glLightfv(GL10.GL_LIGHT0, GL10.GL_DIFFUSE, lightDiffuse,	0);
+		//gl.glLightfv(GL10.GL_LIGHT0, GL10.GL_POSITION, lightPosition, 0);
 		
 		must_init_labels = true;
 		mMLabels = null;
@@ -530,6 +508,21 @@ public class ShadowsView extends GLBase {
 			if ( (System.currentTimeMillis()- event_time) < 175 ) {
 				paused_time = System.currentTimeMillis();
 				paused = (paused+1)%4;
+				switch(paused){
+				case 0:
+					showToast(R.string.txt_rotation_3d);
+					break;
+				case 1:
+					showToast(R.string.txt_rotation_paused);
+					break;
+				case 2:
+					showToast(R.string.txt_rotation_compass);
+					break;
+				case 3:
+					showToast(R.string.txt_rotation_0);
+					break;
+				}
+				
 			}
 //	    	Log.i("TOUCH", ""+event.getAction() + " - " + (System.currentTimeMillis()- event_time) );
 			break;
@@ -585,9 +578,9 @@ public class ShadowsView extends GLBase {
 			// textura a aplicar
 			gl.glBindTexture(GL10.GL_TEXTURE_2D, compassTex);
 		
-			gl.glEnable(GL10.GL_BLEND);
-			gl.glColor4f(1, 1, 1, 0.5f);
-			gl.glBlendFunc(GL10.GL_SRC_ALPHA,GL10.GL_ONE_MINUS_SRC_ALPHA);
+//			gl.glEnable(GL10.GL_BLEND);
+//			gl.glColor4f(1, 1, 1, 0.5f);
+//			gl.glBlendFunc(GL10.GL_SRC_ALPHA,GL10.GL_ONE);
 			// send vertices to the renderer
 			gl.glVertexPointer(3, GL10.GL_FLOAT, 0, quadBuff);
 			gl.glEnableClientState(GL10.GL_VERTEX_ARRAY);
@@ -599,7 +592,7 @@ public class ShadowsView extends GLBase {
 			// draw!
 			gl.glNormal3f(0,0,1.0f);
 			gl.glDrawArrays(GL10.GL_TRIANGLE_STRIP, 0, 4);		
-			gl.glDisable(GL10.GL_BLEND);
+//			gl.glDisable(GL10.GL_BLEND);
 			gl.glDisable(GL10.GL_TEXTURE_2D);		
 
 		gl.glPopMatrix();	
@@ -628,42 +621,42 @@ public class ShadowsView extends GLBase {
 		
 //    	Utils.logTime(0, "drawFrame model");
 
-    	mMLabels.print(gl, (int)mLabelDate, MultiLabelMaker.HA_CENTER, MultiLabelMaker.VA_TOP );
-    	mMLabels.print(gl, " - ", MultiLabelMaker.HA_CENTER, MultiLabelMaker.VA_TOP );
-    	mMLabels.println(gl, (time_label != null ? time_label : solarInformation.getStringTime(SolarInformation.LOCAL_TIME)), MultiLabelMaker.HA_CENTER, MultiLabelMaker.VA_TOP );
-    	
-    	if ( location != null )
-        	mMLabels.println(gl, mLabellocation, MultiLabelMaker.HA_CENTER, MultiLabelMaker.VA_TOP );
-    	else {
-    		float lat = Math.round((float)solarInformation.getValue(SolarInformation.LATITUDE_VALUE)*1000f)/1000f;
-    		float lon = Math.round((float)solarInformation.getValue(SolarInformation.LONGITUDE_VALUE)*1000f)/1000f;
-    		mMLabels.print(gl, lat, MultiLabelMaker.HA_CENTER, MultiLabelMaker.VA_TOP );
-    		mMLabels.print(gl, ", ", MultiLabelMaker.HA_CENTER, MultiLabelMaker.VA_TOP );
-    		mMLabels.println(gl, lon, MultiLabelMaker.HA_CENTER, MultiLabelMaker.VA_TOP );
-    	}
-
-    	float shadow = (float)solarInformation.getValue(SolarInformation.SHADOW_LENGTH_VALUE);
-    	mMLabels.print(gl, mLabelShadow, MultiLabelMaker.HA_CENTER, MultiLabelMaker.VA_TOP );
-        if ( shadow == 0 )
-        	mMLabels.println(gl, mLabelNA, MultiLabelMaker.HA_CENTER, MultiLabelMaker.VA_TOP );
-        else  
-        	mMLabels.println(gl, (float)Math.floor(shadow*1000)/1000f, MultiLabelMaker.HA_CENTER, MultiLabelMaker.VA_TOP );
-        
-    	if ( true || paused != 0 ) {
-    		long delta = (System.currentTimeMillis() - paused_time);
-    		long mod = delta % 1000;
-    		if ( /*delta > 10000 ||*/ mod < 500 || paused == 0 ) {
-            	mMLabels.print(gl, mLabelView, MultiLabelMaker.HA_CENTER, MultiLabelMaker.VA_TOP );
-    			mMLabels.println(gl, mLabelRotation+paused, MultiLabelMaker.HA_CENTER, MultiLabelMaker.VA_TOP );
-    		}
-    	}
-
-    	mMLabels.println(gl, mLabelHelp, MultiLabelMaker.HA_CENTER, MultiLabelMaker.VA_DOWN );
-    	mMLabels.print(gl, MultiLabelMaker.NEW_LINE, MultiLabelMaker.HA_CENTER, MultiLabelMaker.VA_DOWN );
-    	mMLabels.print(gl, MultiLabelMaker.NEW_LINE, MultiLabelMaker.HA_CENTER, MultiLabelMaker.VA_DOWN );
-    	mMLabels.print(gl, MultiLabelMaker.NEW_LINE, MultiLabelMaker.HA_CENTER, MultiLabelMaker.VA_DOWN );
-
-    	mMLabels.flush(gl, mWidth, mHeight);
+//    	mMLabels.print(gl, (int)mLabelDate, MultiLabelMaker.HA_CENTER, MultiLabelMaker.VA_TOP );
+//    	mMLabels.print(gl, " - ", MultiLabelMaker.HA_CENTER, MultiLabelMaker.VA_TOP );
+//    	mMLabels.println(gl, (time_label != null ? time_label : solarInformation.getStringTime(SolarInformation.LOCAL_TIME)), MultiLabelMaker.HA_CENTER, MultiLabelMaker.VA_TOP );
+//    	
+//    	if ( location != null )
+//        	mMLabels.println(gl, mLabellocation, MultiLabelMaker.HA_CENTER, MultiLabelMaker.VA_TOP );
+//    	else {
+//    		float lat = Math.round((float)solarInformation.getValue(SolarInformation.LATITUDE_VALUE)*1000f)/1000f;
+//    		float lon = Math.round((float)solarInformation.getValue(SolarInformation.LONGITUDE_VALUE)*1000f)/1000f;
+//    		mMLabels.print(gl, lat, MultiLabelMaker.HA_CENTER, MultiLabelMaker.VA_TOP );
+//    		mMLabels.print(gl, ", ", MultiLabelMaker.HA_CENTER, MultiLabelMaker.VA_TOP );
+//    		mMLabels.println(gl, lon, MultiLabelMaker.HA_CENTER, MultiLabelMaker.VA_TOP );
+//    	}
+//
+//    	float shadow = (float)solarInformation.getValue(SolarInformation.SHADOW_LENGTH_VALUE);
+//    	mMLabels.print(gl, mLabelShadow, MultiLabelMaker.HA_CENTER, MultiLabelMaker.VA_TOP );
+//        if ( shadow == 0 )
+//        	mMLabels.println(gl, mLabelNA, MultiLabelMaker.HA_CENTER, MultiLabelMaker.VA_TOP );
+//        else  
+//        	mMLabels.println(gl, (float)Math.floor(shadow*1000)/1000f, MultiLabelMaker.HA_CENTER, MultiLabelMaker.VA_TOP );
+//        
+//    	if ( true || paused != 0 ) {
+//    		long delta = (System.currentTimeMillis() - paused_time);
+//    		long mod = delta % 1000;
+//    		if ( /*delta > 10000 ||*/ mod < 500 || paused == 0 ) {
+//            	mMLabels.print(gl, mLabelView, MultiLabelMaker.HA_CENTER, MultiLabelMaker.VA_TOP );
+//    			mMLabels.println(gl, mLabelRotation+paused, MultiLabelMaker.HA_CENTER, MultiLabelMaker.VA_TOP );
+//    		}
+//    	}
+//
+//    	mMLabels.println(gl, mLabelHelp, MultiLabelMaker.HA_CENTER, MultiLabelMaker.VA_DOWN );
+//    	mMLabels.print(gl, MultiLabelMaker.NEW_LINE, MultiLabelMaker.HA_CENTER, MultiLabelMaker.VA_DOWN );
+//    	mMLabels.print(gl, MultiLabelMaker.NEW_LINE, MultiLabelMaker.HA_CENTER, MultiLabelMaker.VA_DOWN );
+//    	mMLabels.print(gl, MultiLabelMaker.NEW_LINE, MultiLabelMaker.HA_CENTER, MultiLabelMaker.VA_DOWN );
+//
+//    	mMLabels.flush(gl, mWidth, mHeight);
 //    	Utils.logTime(0, "drawFrame labels");
 	}
 
