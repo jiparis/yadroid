@@ -207,7 +207,7 @@ public class ShadowsView extends GLBase {
 			myList = myLocation.getFromLocation(latitude, longitude, 1);
 		} catch (IOException e) {
 		}
-		if ( myList != null ) {
+		if ( myList != null & !myList.isEmpty()) {
 			Address a = myList.get(0);
 			res = a.getLocality();
 			if ( res == null )
