@@ -2,7 +2,7 @@
 <resources>
     
     <string name="app_name">aShadow Finder</string>
-    <string name="app_title">Shadow Finder</string>
+    <string name="app_version">1.65</string><string name="app_title">Shadow Finder</string>
     
     <string name="menu_now">Jetzt</string>
 	<string name="menu_goto">Datum ändern</string>
@@ -34,7 +34,7 @@
 	<string name="msg_lp_name_find">"Es wird versucht den Namen zu finden ..."</string>
 	<string name="msg_lp_not_changed">"Lage unverändert"</string>
 	
-	<string name="help_content">
+	<string name="txt_day_selected">Day selected</string><string name="help_content">
 "
 Diese Anwendung zeigt den Schatten der Sonne auf ein bestimmtes Objekt für einen bestimmten Tag und Uhrzeit an.
 
@@ -75,4 +75,6 @@ Copyright (c) 2009
     José Luis Oramas Martín
 "
 	</string>
+	
+	
 </resources>

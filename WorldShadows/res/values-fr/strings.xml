@@ -70,4 +70,6 @@ Copyright (c) 2009
     José Luis Oramas Martín
 "
 	</string>
+	<string name="txt_day_selected">Day selected</string>
+	<string name="app_version">1.65</string>
 </resources>

@@ -16,6 +16,7 @@
 	<string name="txt_sunrise">"Sunrise "</string>
 	<string name="txt_sunset">"Sunset "</string>
 	<string name="txt_day_selection">Select day</string>
+	<string name="txt_day_selected">Selected day: </string>
 	<string name="txt_rotation_3d">3D</string>
 	<string name="txt_rotation_paused">Rotation paused</string>
 	<string name="txt_rotation_compass">Compass</string>
