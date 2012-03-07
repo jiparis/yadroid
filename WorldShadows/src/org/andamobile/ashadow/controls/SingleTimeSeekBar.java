@@ -33,13 +33,13 @@ public class SingleTimeSeekBar extends SeekBar implements SeekBar.OnSeekBarChang
 		paint.setAntiAlias(true);
 		paint.setStrokeWidth(1.1F);
 		paint.setColor( Color.BLACK );	
-		setMax(MAX_PROGRESS);
 		
 		this.callback = callback;
 
 		this.minuteGap = minuteGap;
 		this.max_range = 60.0f / minuteGap;
 		
+	    setMax(MAX_PROGRESS);
 		setTimeLimits( minTime, maxTime );
 	}
 
